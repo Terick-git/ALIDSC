@@ -1,0 +1,118 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Evenement;
+use App\Services\ImageService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+
+class EvenementController extends Controller
+{
+    protected ImageService $images;
+
+    public function __construct(ImageService $images)
+    {
+        $this->images = $images;
+    }
+
+    public function index()
+    {
+        $evenements = Evenement::with('auteur')->latest('date_debut')->paginate(15);
+        return view('admin.evenements.index', compact('evenements'));
+    }
+
+    public function create()
+    {
+        return view('admin.evenements.create');
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'titre' => 'required|string|max:255',
+            'extrait' => 'required|string|max:500',
+            'contenu' => 'required|string',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'date_debut' => 'required|date',
+            'date_fin' => 'nullable|date|after_or_equal:date_debut',
+            'lieu' => 'required|string|max:255',
+            'ville' => 'nullable|string|max:100',
+            'intervenants' => 'nullable|string|max:500',
+            'lien_inscription' => 'nullable|url|max:500',
+            'statut' => 'required|in:brouillon,publie,annule',
+        ]);
+
+        $validated['slug'] = Str::slug($validated['titre']) . '-' . date('Ymd');
+        $validated['user_id'] = Auth::id();
+        $validated['inscription_requise'] = $request->has('inscription_requise');
+
+        if ($request->hasFile('image')) {
+            $validated['image'] = $this->images->uploadOptimise(
+                $request->file('image'),
+                'evenements',
+                1600,
+                85
+            );
+        }
+
+        Evenement::create($validated);
+
+        return redirect()->route('admin.evenements.index')
+            ->with('success', 'Événement créé avec succès.');
+    }
+
+    public function edit(Evenement $evenement)
+    {
+        return view('admin.evenements.edit', compact('evenement'));
+    }
+
+    public function update(Request $request, Evenement $evenement)
+    {
+        $validated = $request->validate([
+            'titre' => 'required|string|max:255',
+            'extrait' => 'required|string|max:500',
+            'contenu' => 'required|string',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'date_debut' => 'required|date',
+            'date_fin' => 'nullable|date|after_or_equal:date_debut',
+            'lieu' => 'required|string|max:255',
+            'ville' => 'nullable|string|max:100',
+            'intervenants' => 'nullable|string|max:500',
+            'lien_inscription' => 'nullable|url|max:500',
+            'statut' => 'required|in:brouillon,publie,annule',
+        ]);
+
+        $validated['inscription_requise'] = $request->has('inscription_requise');
+
+        if ($request->hasFile('image')) {
+            // Supprimer l'ancienne image
+            $this->images->supprimer($evenement->image);
+
+            $validated['image'] = $this->images->uploadOptimise(
+                $request->file('image'),
+                'evenements',
+                1600,
+                85
+            );
+        }
+
+        $evenement->update($validated);
+
+        return redirect()->route('admin.evenements.index')
+            ->with('success', 'Événement mis à jour.');
+    }
+
+    public function destroy(Evenement $evenement)
+    {
+        // Supprimer l'image
+        $this->images->supprimer($evenement->image);
+
+        $evenement->delete();
+
+        return redirect()->route('admin.evenements.index')
+            ->with('success', 'Événement supprimé.');
+    }
+}
