@@ -16,24 +16,30 @@ return [
         'founding'   => '2022-01-01',
         'email'      => 'contact@alidsc.org',
         'phone'      => '+237696506940',
-        'same_as'    => [
+
+        'same_as' => [
             // 'https://www.facebook.com/alidsc',
             // 'https://www.linkedin.com/company/alidsc',
         ],
+
         'address' => [
-            'street'      => 'Pitoire (Ancien décanat), derrière la CNPS',
-            'city'        => 'Maroua',
-            'region'      => 'Extrême-Nord',
-            'country'     => 'CM',
-            'postal_code' => '',
+            'street'  => 'Pitoire (Ancien décanat), derrière la CNPS',
+            'city'    => 'Maroua',
+            'region'  => 'Extrême-Nord',
+            'country' => 'CM',
+            // 'postal_code' volontairement absent : le Cameroun n'a pas de code
+            // postal standardisé, et une chaîne vide dans le JSON-LD n'est pas
+            // exploitable. Seo.php utilise `?? null` → la clé sera omise.
         ],
+
         'geo' => [
             'latitude'  => '10.5956',
             'longitude' => '14.3247',
         ],
-        'area_served'      => 'CM',
-        'knows_language'   => ['fr', 'en'],
-        'slogan'           => 'Étudiez, Rêvez, Réussissez.',
+
+        'area_served'    => 'CM',
+        'knows_language' => ['fr', 'en'],
+        'slogan'         => 'Étudiez, Rêvez, Réussissez.',
     ],
 
     /*
@@ -57,9 +63,9 @@ return [
     */
 
     'sitemap' => [
-        'cache_ttl'     => 3600, // 1 heure
-        'default_freq'  => 'monthly',
-        'default_prio'  => '0.5',
+        'cache_ttl'    => 3600, // 1 heure
+        'default_freq' => 'monthly',
+        'default_prio' => '0.5',
     ],
 
 ];

@@ -1,51 +1,34 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Mot de passe oublié — ALIDSC</title>
-    <link href="https://fonts.googleapis.com/css2?family=Bricolage Grotesque:opsz,wght@9..144,400;9..144,500&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', system-ui, sans-serif; background: #FDFCFA; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; }
-        h1 { font-family: 'Bricolage Grotesque', Georgia, serif; color: #10263B; letter-spacing: -.02em; }
-        a { color: #0B6FB8; text-decoration: none; }
-        a:hover { color: #10263B; }
-        .card { background: white; padding: 3rem 2.5rem; border: 1px solid #E5E0D8; border-radius: 8px; width: 100%; max-width: 440px; }
-        .field { margin-bottom: 1.5rem; }
-        .field label { display: block; font-size: .6875rem; font-weight: 500; letter-spacing: .15em; text-transform: uppercase; color: #8A8A8A; margin-bottom: .5rem; }
-        .field input { width: 100%; padding: .75rem 0; font-size: 1rem; border: 0; border-bottom: 1px solid #E5E0D8; outline: none; font-family: inherit; background: transparent; }
-        .field input:focus { border-color: #0B6FB8; }
-        .error { margin-top: .5rem; font-size: .8125rem; color: #C53030; }
-        .btn { width: 100%; padding: 1rem; background: #10263B; color: white; border: 0; font-size: .9375rem; font-weight: 600; cursor: pointer; font-family: inherit; }
-        .btn:hover { background: #0A1B2A; }
-        .alert { padding: .875rem 1rem; background: #ECFDF5; border-left: 3px solid #059669; color: #065F46; font-size: .875rem; margin-bottom: 1.5rem; }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <h1 style="font-size:1.75rem; text-align:center; margin-bottom:.5rem;">Mot de passe oublié</h1>
-        <p style="text-align:center; font-size:.875rem; color:#8A8A8A; margin-bottom:2rem;">
-            Recevez un mot de passe temporaire par email
-        </p>
+<x-guest-layout>
 
-        @if(session('success'))
-            <div class="alert">{{ session('success') }}</div>
-        @endif
+    @section('title', 'Mot de passe oublié — Espace adhérent')
 
-        <form method="POST" action="{{ route('adherent.password.send') }}">
-            @csrf
-            <div class="field">
-                <label for="email">Votre email</label>
-                <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus>
-                @error('email')<p class="error">{{ $message }}</p>@enderror
-            </div>
-            <button type="submit" class="btn">Recevoir un mot de passe</button>
-        </form>
-
-        <p style="text-align:center; margin-top:2rem; font-size:.875rem;">
-            <a href="{{ route('adherent.login') }}" style="color:#8A8A8A;">← Retour à la connexion</a>
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <h1 style="font-size: 1.75rem; margin-bottom: 0.5rem;">Mot de passe oublié</h1>
+        <p style="font-size: 0.875rem; color: #6B7E92; line-height: 1.6;">
+            Saisissez votre email. Nous vous enverrons un mot de passe temporaire à changer dès votre première connexion.
         </p>
     </div>
-</body>
-</html>
+
+    @if(session('success'))
+        <div class="guest-alert guest-alert-success">{{ session('success') }}</div>
+    @endif
+
+    <form method="POST" action="{{ route('adherent.password.send') }}">
+        @csrf
+
+        <div class="guest-field">
+            <label for="email">Votre email</label>
+            <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username">
+            @error('email')
+                <p class="guest-error">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <button type="submit" class="guest-btn">Recevoir un mot de passe</button>
+    </form>
+
+    <p style="text-align: center; margin-top: 2rem; font-size: 0.875rem;">
+        <a href="{{ route('adherent.login') }}" style="color: #6B7E92;">← Retour à la connexion</a>
+    </p>
+
+</x-guest-layout>

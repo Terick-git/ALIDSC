@@ -5,16 +5,18 @@ namespace App\Http\Controllers;
 use App\Models\Adherent;
 use App\Models\User;
 use App\Notifications\NouvelleDemandeAdhesion;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\View\View;
 
 class AdhesionController extends Controller
 {
     /**
      * Affiche le formulaire d'adhésion (page publique).
      */
-    public function index()
+    public function index(): View
     {
         return view('pages.adherer');
     }
@@ -22,31 +24,32 @@ class AdhesionController extends Controller
     /**
      * Enregistre une nouvelle demande d'adhésion.
      *
-     * RÈGLE MÉTIER : Aucune adhésion n'est finalisée automatiquement.
-     * La demande est stockée avec le statut « en_attente » et le compte
-     * n'est PAS actif. Un admin devra valider manuellement.
+     * RÈGLE MÉTIER : aucune adhésion n'est finalisée automatiquement.
+     * La demande est stockée en « en_attente » et le compte n'est PAS actif.
+     * Un admin devra valider manuellement.
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'nom'                 => 'required|string|max:255',
-            'prenom'              => 'required|string|max:255',
-            'date_naissance'      => 'required|date|before:today',
-            'etablissement'       => 'required|string|max:255',
-            'categorie'           => 'required|in:simple,actif',
-            'cotisation_proposee' => 'nullable|integer|min:0|max:1000000',
-            'piece_identite'      => 'required|file|mimetypes:application/pdf,image/jpeg,image/png|max:5120',
-            'email'               => 'required|email|unique:adherents,email',
-            'telephone'           => 'required|string|max:30',
-            'adresse'             => 'required|string|max:255',
-            'ville'               => 'nullable|string|max:100',
-            'motivation'          => 'nullable|string|max:2000',
+            'nom'                 => ['required', 'string', 'max:255'],
+            'prenom'              => ['required', 'string', 'max:255'],
+            'date_naissance'      => ['required', 'date', 'before:today'],
+            'etablissement'       => ['required', 'string', 'max:255'],
+            'categorie'           => ['required', 'in:simple,actif'],
+            'cotisation_proposee' => ['nullable', 'integer', 'min:0', 'max:1000000'],
+            'piece_identite'      => ['required', 'file', 'mimetypes:application/pdf,image/jpeg,image/png', 'max:5120'],
+            'email'               => ['required', 'email', 'unique:adherents,email'],
+            'telephone'           => ['required', 'string', 'max:30'],
+            'adresse'             => ['required', 'string', 'max:255'],
+            'ville'               => ['nullable', 'string', 'max:100'],
+            'motivation'          => ['nullable', 'string', 'max:2000'],
         ], [
-            'email.unique'             => 'Cet email est déjà enregistré. Contactez-nous si besoin.',
-            'piece_identite.required'  => 'Veuillez joindre une copie de votre pièce d\'identité.',
-            'piece_identite.mimetypes' => 'Format accepté : PDF, JPG ou PNG.',
-            'piece_identite.max'       => 'La pièce d\'identité ne doit pas dépasser 5 Mo.',
+            'email.unique'                => 'Cet email est déjà enregistré. Contactez-nous si besoin.',
+            'piece_identite.required'     => 'Veuillez joindre une copie de votre pièce d\'identité.',
+            'piece_identite.mimetypes'    => 'Format accepté : PDF, JPG ou PNG.',
+            'piece_identite.max'          => 'La pièce d\'identité ne doit pas dépasser 5 Mo.',
             'cotisation_proposee.integer' => 'Le montant doit être un nombre entier.',
+            'cotisation_proposee.max'     => 'Le montant proposé dépasse le plafond autorisé.',
         ]);
 
         try {
@@ -77,28 +80,36 @@ class AdhesionController extends Controller
                     'espace_actif'        => false,
                 ]);
             });
-        } catch (\Exception $e) {
-            Log::error('Erreur création adhérent : ' . $e->getMessage(), [
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
+        } catch (\Throwable $e) {
+            Log::error('Création adhérent échouée', [
+                'file'      => $e->getFile(),
+                'line'      => $e->getLine(),
+                'exception' => $e->getMessage(),
             ]);
 
             return back()->withInput()
-                ->withErrors(['email' => 'Une erreur est survenue : ' . $e->getMessage()]);
+                ->withErrors([
+                    'email' => 'Une erreur est survenue. Merci de réessayer ou de nous contacter.',
+                ]);
         }
 
         // Notifier tous les administrateurs
         $admins = User::where('role', 'admin')->get();
+
         foreach ($admins as $admin) {
             try {
                 $admin->notify(new NouvelleDemandeAdhesion($adherent));
-            } catch (\Exception $e) {
-                Log::error('Erreur notification admin : ' . $e->getMessage());
+            } catch (\Throwable $e) {
+                Log::error('Notification admin échouée', [
+                    'admin_id'    => $admin->id,
+                    'adherent_id' => $adherent->id,
+                    'exception'   => $e->getMessage(),
+                ]);
             }
         }
 
-        return redirect()->route('adherer')
+        return redirect()
+            ->route('adherer')
             ->with('success', 'Votre demande a bien été envoyée. Un responsable ALIDSC va l\'examiner et vous contactera par email.');
     }
 }
