@@ -30,7 +30,7 @@ class ExportController extends Controller
 
             // En-têtes
             fputcsv($handle, [
-                'ID', 'Nom', 'Prénom', 'Email', 'Téléphone', 'Ville', 'Profession',
+                'ID', 'Nom', 'Prénom', 'Email', 'Téléphone', 'Ville', 'Établissement',
                 'Date adhésion', 'Montant cotisation (FCFA)', 'Statut cotisation',
                 'Dernier paiement', 'Mode paiement', 'Actif', 'Notes'
             ], ';');
@@ -43,7 +43,7 @@ class ExportController extends Controller
                     $a->email,
                     $a->telephone,
                     $a->ville,
-                    $a->profession,
+                    $a->etablissement,
                     $a->date_adhesion?->format('d/m/Y'),
                     $a->cotisation_montant,
                     $a->statut_cotisation,

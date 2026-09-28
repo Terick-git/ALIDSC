@@ -1,4 +1,4 @@
-<x-guest-layout>
+<x-two-factor-layout>
     @section('title', 'Vérification en deux étapes')
 
     <div style="text-align: center; margin-bottom: 2.5rem;">
@@ -63,13 +63,4 @@
             Utilisez un <strong style="color: #4A4A4A;">code de secours</strong> à la place du code à 6 chiffres.
         </p>
     </div>
-
-    <div style="margin-top: 2rem; text-align: center;">
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit" style="font-size: .8125rem; color: #8A8A8A; background: none; border: 0; cursor: pointer; text-decoration: underline;">
-                Se déconnecter
-            </button>
-        </form>
-    </div>
-</x-guest-layout>
+</x-two-factor-layout>

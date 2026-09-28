@@ -70,17 +70,10 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-5">
-            <div>
-                <label class="block text-sm font-medium mb-1">Ville</label>
-                <input type="text" name="ville" value="{{ old('ville', $adherent->ville) }}"
-                       class="w-full px-3 py-2 border rounded">
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Profession</label>
-                <input type="text" name="profession" value="{{ old('profession', $adherent->profession) }}"
-                       class="w-full px-3 py-2 border rounded">
-            </div>
+        <div>
+            <label class="block text-sm font-medium mb-1">Ville</label>
+            <input type="text" name="ville" value="{{ old('ville', $adherent->ville) }}"
+                   class="w-full px-3 py-2 border rounded">
         </div>
 
         <div>

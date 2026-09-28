@@ -1,9 +1,13 @@
+@extends('layouts.app')
+
 @php
     $ogImage = $evenement->image
         ? asset('storage/' . $evenement->image)
         : asset('images/og-default.jpg');
 @endphp
 
+@section('title', $evenement->titre)
+@section('description', $evenement->extrait)
 @section('og_type', 'article')
 @section('og_image', $ogImage)
 
@@ -15,10 +19,7 @@
         ['name' => $evenement->titre, 'url' => route('evenements.show', $evenement->slug)],
     ])" />
 @endpush
-@extends('layouts.app')
-@section('title', $evenement->titre)
-@section('description', $evenement->extrait)
-@section('og_image', $evenement->image ? asset('storage/'.$evenement->image) : asset('images/logo-alidsc.jpg'))
+
 @section('content')
 
 <section style="padding: 12rem 0 4rem; background: var(--paper);">

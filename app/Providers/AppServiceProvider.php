@@ -48,13 +48,24 @@ class AppServiceProvider extends ServiceProvider
         // ─── Connexion adhérent ─────────────────────────────
         RateLimiter::for('adherent-login', function (Request $request) {
             return Limit::perMinute(5)
-                ->by($request->ip() . '|' . $request->input('email'));
+                ->by($request->ip() . '|' . $request->input('email'))
+                ->response(function () {
+                    return response()->view('errors.429', [
+                        'message' => 'Trop de tentatives de connexion. Réessayez dans une minute.',
+                    ], 429);
+                });
         });
 
         // ─── Mot de passe oublié adhérent ───────────────────
         RateLimiter::for('adherent-password-reset', function (Request $request) {
             return [
-                Limit::perMinute(3)->by($request->ip()),
+                Limit::perMinute(3)
+                    ->by($request->ip())
+                    ->response(function () {
+                        return response()->view('errors.429', [
+                            'message' => 'Trop de demandes de réinitialisation. Patientez quelques minutes.',
+                        ], 429);
+                    }),
                 Limit::perHour(10)->by($request->ip()),
             ];
         });

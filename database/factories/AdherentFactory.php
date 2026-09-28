@@ -24,7 +24,6 @@ class AdherentFactory extends Factory
             'telephone' => '6' . fake()->numerify('########'),
             'ville' => 'Maroua',
             'adresse' => fake()->streetAddress(),
-            'profession' => fake()->jobTitle(),
             'etablissement' => fake()->company(),
             'categorie' => 'simple',
             'cotisation_proposee' => null,

@@ -1,4 +1,4 @@
-<x-guest-layout>
+<x-two-factor-layout>
     @section('title', 'Activer la 2FA')
 
     <div style="text-align: center; margin-bottom: 2rem;">
@@ -64,4 +64,4 @@
             ← Annuler
         </a>
     </div>
-</x-guest-layout>
+</x-two-factor-layout>

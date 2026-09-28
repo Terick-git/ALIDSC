@@ -38,7 +38,7 @@
                     </td>
                     <td class="px-4 py-3 text-right space-x-2">
                         <a href="{{ route('admin.evenements.edit', $e) }}" class="text-blue-600 hover:underline">Modifier</a>
-                        <form method="POST" action="{{ route('admin.evenements.destroy', $e) }}" class="inline" onsubmit="return confirm('Supprimer ?')">
+                        <form method="POST" action="{{ route('admin.evenements.destroy', $e) }}" class="inline" data-confirm="Supprimer ?">
                             @csrf @method('DELETE')
                             <button class="text-red-600 hover:underline">Supprimer</button>
                         </form>

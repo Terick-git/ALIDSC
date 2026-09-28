@@ -63,7 +63,6 @@ class AdhesionController extends Controller
                     'prenom'              => $validated['prenom'],
                     'date_naissance'      => $validated['date_naissance'],
                     'etablissement'       => $validated['etablissement'],
-                    'profession'          => $validated['etablissement'],
                     'categorie'           => $validated['categorie'],
                     'cotisation_proposee' => $validated['cotisation_proposee'] ?? null,
                     'email'               => $validated['email'],

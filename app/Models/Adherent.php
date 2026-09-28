@@ -12,7 +12,7 @@ class Adherent extends Authenticatable
 
     protected $fillable = [
         'nom', 'prenom', 'date_naissance', 'email', 'password', 'telephone',
-        'ville', 'adresse', 'profession', 'etablissement', 'categorie',
+        'ville', 'adresse', 'etablissement', 'categorie',
         'cotisation_proposee', 'date_adhesion', 'cotisation_montant',
         'statut_cotisation', 'statut_demande', 'motif_refus', 'piece_identite',
         'date_dernier_paiement', 'mode_paiement', 'notes', 'actif',

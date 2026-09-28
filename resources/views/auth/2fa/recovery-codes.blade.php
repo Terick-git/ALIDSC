@@ -1,4 +1,4 @@
-<x-guest-layout>
+<x-two-factor-layout>
     @section('title', 'Codes de secours')
 
     <div style="text-align: center; margin-bottom: 2rem;">
@@ -56,4 +56,4 @@
             Continuer vers le tableau de bord →
         </a>
     </div>
-</x-guest-layout>
+</x-two-factor-layout>

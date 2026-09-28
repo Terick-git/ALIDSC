@@ -78,12 +78,16 @@ Route::view('/mentions-legales', 'legal.mentions-legales')->name('legal.mentions
 
 /*
 |--------------------------------------------------------------------------
-| DASHBOARD ADMIN
+| DASHBOARD ADMIN — protégé par le middleware `admin`
 |--------------------------------------------------------------------------
+| IMPORTANT : le middleware `admin` est obligatoire.
+| Sans lui, tout utilisateur inscrit (rôle « membre » par défaut)
+| accède au tableau de bord et voit les statistiques internes
+| (recettes, adhérents en attente, derniers messages…).
 */
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', 'admin'])
     ->name('dashboard');
 
 /*

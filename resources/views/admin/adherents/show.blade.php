@@ -22,7 +22,7 @@
                 <div><dt class="text-gray-500">Date de naissance</dt><dd>{{ $adherent->date_naissance?->format('d/m/Y') ?? '—' }}</dd></div>
                 <div><dt class="text-gray-500">Ville</dt><dd>{{ $adherent->ville ?? '—' }}</dd></div>
                 <div class="col-span-2"><dt class="text-gray-500">Adresse</dt><dd>{{ $adherent->adresse ?? '—' }}</dd></div>
-                <div class="col-span-2"><dt class="text-gray-500">Établissement / Profession</dt><dd>{{ $adherent->etablissement ?? '—' }}</dd></div>
+                <div class="col-span-2"><dt class="text-gray-500">Établissement</dt><dd>{{ $adherent->etablissement ?? '—' }}</dd></div>
                 @if($adherent->notes)<div class="col-span-2"><dt class="text-gray-500">Motivation</dt><dd class="whitespace-pre-line">{{ $adherent->notes }}</dd></div>@endif
             </dl>
         </div>

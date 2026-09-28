@@ -69,7 +69,6 @@ class AdherentController extends Controller
             'telephone'             => ['required', 'string', 'max:30'],
             'ville'                 => ['nullable', 'string', 'max:100'],
             'adresse'               => ['nullable', 'string', 'max:255'],
-            'profession'            => ['nullable', 'string', 'max:100'],
             'etablissement'         => ['nullable', 'string', 'max:255'],
             'categorie'             => ['required', 'in:simple,actif'],
             'cotisation_proposee'   => ['nullable', 'integer', 'min:0'],

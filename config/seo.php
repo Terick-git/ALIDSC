@@ -28,8 +28,7 @@ return [
             'region'  => 'Extrême-Nord',
             'country' => 'CM',
             // 'postal_code' volontairement absent : le Cameroun n'a pas de code
-            // postal standardisé, et une chaîne vide dans le JSON-LD n'est pas
-            // exploitable. Seo.php utilise `?? null` → la clé sera omise.
+            // postal standardisé. Seo.php utilise `?? null` → la clé sera omise.
         ],
 
         'geo' => [
