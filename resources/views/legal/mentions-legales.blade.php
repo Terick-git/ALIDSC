@@ -10,7 +10,7 @@
             <h2 class="display-3" style="margin: 3rem 0 1rem; font-size:1.25rem;">Éditeur du site</h2>
             <p>Association de Lutte contre les Inégalités et les Décrochages Scolaires au Cameroun (ALIDSC)<br>
             Association apolitique et à but non lucratif, régie par la Loi N°90/053 du 19 décembre 1990.<br>
-            Siège : Maroua, Pitoire (Ancien décanat), derrière la CNPS.<br>
+            Siège : Maroua, Cameroun, derrière la CNPS.<br>
             Téléphone : 690 856 383 / 696 118 592</p>
 
             <h2 class="display-3" style="margin: 3rem 0 1rem; font-size:1.25rem;">Hébergement</h2>

@@ -28,9 +28,8 @@
                 <div style="padding-bottom: 2rem; border-bottom: 1px solid var(--line); margin-bottom: 2rem;">
                     <span class="meta" style="display:block; margin-bottom: 1rem; color: var(--blue);">Siège social</span>
                     <p class="para">
-                        Pitoire (Ancien décanat)<br>
-                        Derrière la CNPS<br>
-                        Maroua, Extrême-Nord<br>
+                        Maroua
+                        Extrême-Nord
                         Cameroun
                     </p>
                 </div>

@@ -23,12 +23,10 @@ return [
         ],
 
         'address' => [
-            'street'  => 'Pitoire (Ancien décanat), derrière la CNPS',
+            'street'  => null,
             'city'    => 'Maroua',
             'region'  => 'Extrême-Nord',
             'country' => 'CM',
-            // 'postal_code' volontairement absent : le Cameroun n'a pas de code
-            // postal standardisé. Seo.php utilise `?? null` → la clé sera omise.
         ],
 
         'geo' => [

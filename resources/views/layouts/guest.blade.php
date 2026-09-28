@@ -105,11 +105,5 @@
         </div>
     </main>
 
-    <footer style="padding: 1.5rem 2rem; text-align:center;">
-        <a href="{{ route('home') }}" style="font-size: .875rem; color: #6B7E92;">
-            ← Retour au site
-        </a>
-    </footer>
-
 </body>
 </html>

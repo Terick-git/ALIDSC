@@ -22,7 +22,7 @@
 <section class="numbers" style="padding: 4rem 0 10rem;">
     <div class="frame">
         <div class="number-row fade">
-            <div class="number-value">500<span class="plus">+</span></div>
+            <div class="number-value">34<span class="plus">+</span></div>
             <div class="number-detail">
                 <h3>Élèves accompagnés.</h3>
                 <p>Des enfants qui auraient décroché sans intervention, aujourd'hui scolarisés ou en cours de raccrochage.</p>
