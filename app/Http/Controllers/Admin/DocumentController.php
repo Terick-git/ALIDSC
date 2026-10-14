@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Adherent;
 use App\Models\Document;
+use App\Notifications\NouveauDocumentAdherent;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -37,10 +41,15 @@ class DocumentController extends Controller
         $validated['user_id'] = auth()->id();
         $validated['fichier'] = $request->file('fichier')->store('documents', 'private');
 
-        Document::create($validated);
+        $document = Document::create($validated);
+
+        // ─── Notification aux adhérents (si le doc est actif) ─────
+        if ($document->actif) {
+            $this->notifierAdherents($document);
+        }
 
         return redirect()->route('admin.documents.index')
-            ->with('success', 'Document ajouté.');
+            ->with('success', 'Document ajouté.' . ($document->actif ? ' Adhérents notifiés.' : ''));
     }
 
     public function edit(Document $document)
@@ -58,6 +67,8 @@ class DocumentController extends Controller
             'ordre' => 'nullable|integer|min:0',
         ]);
 
+        $etaitActif = $document->actif;
+
         $validated['actif'] = $request->has('actif');
         $validated['ordre'] = $validated['ordre'] ?? 0;
 
@@ -69,6 +80,11 @@ class DocumentController extends Controller
         }
 
         $document->update($validated);
+
+        // Notification si le document passe de "inactif" à "actif"
+        if (! $etaitActif && $document->actif) {
+            $this->notifierAdherents($document);
+        }
 
         return redirect()->route('admin.documents.index')
             ->with('success', 'Document mis à jour.');
@@ -84,6 +100,27 @@ class DocumentController extends Controller
 
         return redirect()->route('admin.documents.index')
             ->with('success', 'Document supprimé.');
+    }
+
+    /**
+     * Notifie tous les adhérents actifs (en queue).
+     */
+    protected function notifierAdherents(Document $document): void
+    {
+        try {
+            $adherents = Adherent::actifs()->get();
+
+            if ($adherents->isEmpty()) {
+                return;
+            }
+
+            Notification::send($adherents, new NouveauDocumentAdherent($document));
+        } catch (\Throwable $e) {
+            Log::error('Notification document aux adhérents échouée', [
+                'document_id' => $document->id,
+                'exception'   => $e->getMessage(),
+            ]);
+        }
     }
 
     protected function genererSlugUnique(string $titre): string

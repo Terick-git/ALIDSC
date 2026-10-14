@@ -19,11 +19,22 @@
         @csrf
 
         <div class="guest-field">
-            <label for="email">Email</label>
-            <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username">
-            @error('email')
+            <label for="identifiant">Email ou téléphone</label>
+            <input id="identifiant"
+                   type="text"
+                   name="identifiant"
+                   value="{{ old('identifiant') }}"
+                   required
+                   autofocus
+                   autocomplete="username"
+                   inputmode="email"
+                   placeholder="vous@exemple.com ou 6XX XX XX XX">
+            @error('identifiant')
                 <p class="guest-error">{{ $message }}</p>
             @enderror
+            <p style="margin-top: 0.5rem; font-size: 0.75rem; color: #6B7E92; line-height: 1.5;">
+                Vous pouvez utiliser l'email ou le numéro de téléphone renseigné lors de votre adhésion.
+            </p>
         </div>
 
         <div class="guest-field">

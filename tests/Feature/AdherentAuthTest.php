@@ -11,39 +11,137 @@ class AdherentAuthTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_un_adherent_actif_peut_se_connecter(): void
+    // ═══════════════════════════════════════════════════════
+    // Connexion par EMAIL
+    // ═══════════════════════════════════════════════════════
+
+    public function test_un_adherent_actif_peut_se_connecter_par_email(): void
     {
         $adherent = Adherent::factory()->create([
-            'email' => 'actif@example.com',
-            'password' => Hash::make('motdepasse123'),
+            'email'          => 'actif@example.com',
+            'password'       => Hash::make('motdepasse123'),
             'statut_demande' => 'active',
-            'espace_actif' => true,
+            'espace_actif'   => true,
         ]);
 
         $reponse = $this->post(route('adherent.login.post'), [
-            'email' => 'actif@example.com',
-            'password' => 'motdepasse123',
+            'identifiant' => 'actif@example.com',
+            'password'    => 'motdepasse123',
         ]);
 
         $reponse->assertRedirect(route('adherent.dashboard'));
         $this->assertAuthenticatedAs($adherent, 'adherent');
     }
 
-    public function test_un_adherent_non_active_ne_peut_pas_se_connecter(): void
+    // ═══════════════════════════════════════════════════════
+    // Connexion par TÉLÉPHONE
+    // ═══════════════════════════════════════════════════════
+
+    public function test_un_adherent_peut_se_connecter_par_son_telephone(): void
     {
-        Adherent::factory()->create([
-            'email' => 'inactif@example.com',
-            'password' => Hash::make('motdepasse123'),
-            'statut_demande' => 'en_attente',
-            'espace_actif' => false,
+        $adherent = Adherent::factory()->create([
+            'email'          => 'avec.tel@example.com',
+            'telephone'      => '690123456',
+            'password'       => Hash::make('motdepasse123'),
+            'statut_demande' => 'active',
+            'espace_actif'   => true,
         ]);
 
         $reponse = $this->post(route('adherent.login.post'), [
-            'email' => 'inactif@example.com',
-            'password' => 'motdepasse123',
+            'identifiant' => '690123456',
+            'password'    => 'motdepasse123',
         ]);
 
-        $reponse->assertSessionHasErrors('email');
+        $reponse->assertRedirect(route('adherent.dashboard'));
+        $this->assertAuthenticatedAs($adherent, 'adherent');
+    }
+
+    public function test_un_adherent_peut_se_connecter_avec_telephone_formate(): void
+    {
+        $adherent = Adherent::factory()->create([
+            'telephone'      => '690123456',
+            'password'       => Hash::make('motdepasse123'),
+            'statut_demande' => 'active',
+            'espace_actif'   => true,
+        ]);
+
+        // Variante avec indicatif + espaces
+        $reponse = $this->post(route('adherent.login.post'), [
+            'identifiant' => '+237 690 12 34 56',
+            'password'    => 'motdepasse123',
+        ]);
+
+        $reponse->assertRedirect(route('adherent.dashboard'));
+        $this->assertAuthenticatedAs($adherent, 'adherent');
+    }
+
+    public function test_un_adherent_peut_se_connecter_si_telephone_stocke_avec_indicatif(): void
+    {
+        $adherent = Adherent::factory()->create([
+            'telephone'      => '+237690123456',
+            'password'       => Hash::make('motdepasse123'),
+            'statut_demande' => 'active',
+            'espace_actif'   => true,
+        ]);
+
+        // L'adhérent saisit sans indicatif cette fois
+        $reponse = $this->post(route('adherent.login.post'), [
+            'identifiant' => '690123456',
+            'password'    => 'motdepasse123',
+        ]);
+
+        $reponse->assertRedirect(route('adherent.dashboard'));
+        $this->assertAuthenticatedAs($adherent, 'adherent');
+    }
+
+    public function test_connexion_avec_telephone_inconnu_echoue(): void
+    {
+        $reponse = $this->post(route('adherent.login.post'), [
+            'identifiant' => '699999999',
+            'password'    => 'nimporte',
+        ]);
+
+        $reponse->assertSessionHasErrors('identifiant');
+        $this->assertGuest('adherent');
+    }
+
+    public function test_connexion_avec_telephone_trop_court_echoue(): void
+    {
+        Adherent::factory()->create([
+            'telephone'      => '690123456',
+            'password'       => Hash::make('motdepasse123'),
+            'statut_demande' => 'active',
+            'espace_actif'   => true,
+        ]);
+
+        $reponse = $this->post(route('adherent.login.post'), [
+            'identifiant' => '69012', // trop court
+            'password'    => 'motdepasse123',
+        ]);
+
+        $reponse->assertSessionHasErrors('identifiant');
+        $this->assertGuest('adherent');
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // Cas d'échec communs
+    // ═══════════════════════════════════════════════════════
+
+    public function test_un_adherent_non_active_ne_peut_pas_se_connecter(): void
+    {
+        Adherent::factory()->create([
+            'email'          => 'inactif@example.com',
+            'password'       => Hash::make('motdepasse123'),
+            'statut_demande' => 'en_attente',
+            'espace_actif'   => false,
+        ]);
+
+        $reponse = $this->post(route('adherent.login.post'), [
+            'identifiant' => 'inactif@example.com',
+            'password'    => 'motdepasse123',
+        ]);
+
+        $reponse->assertSessionHasErrors('identifiant');
         $this->assertGuest('adherent');
     }
 
@@ -57,7 +155,7 @@ class AdherentAuthTest extends TestCase
     {
         $adherent = Adherent::factory()->create([
             'statut_demande' => 'active',
-            'espace_actif' => true,
+            'espace_actif'   => true,
         ]);
 
         $reponse = $this->actingAs($adherent, 'adherent')

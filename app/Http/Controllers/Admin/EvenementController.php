@@ -3,10 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Adherent;
 use App\Models\Evenement;
+use App\Notifications\NouvelEvenementAdherent;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 
 class EvenementController extends Controller
@@ -58,10 +62,15 @@ class EvenementController extends Controller
             );
         }
 
-        Evenement::create($validated);
+        $evenement = Evenement::create($validated);
+
+        // Notification si publié dès la création
+        if ($evenement->statut === 'publie') {
+            $this->notifierAdherents($evenement);
+        }
 
         return redirect()->route('admin.evenements.index')
-            ->with('success', 'Événement créé avec succès.');
+            ->with('success', 'Événement créé avec succès.' . ($evenement->statut === 'publie' ? ' Adhérents notifiés.' : ''));
     }
 
     public function edit(Evenement $evenement)
@@ -85,6 +94,8 @@ class EvenementController extends Controller
             'statut' => 'required|in:brouillon,publie,annule',
         ]);
 
+        $statutAvant = $evenement->statut;
+
         $validated['inscription_requise'] = $request->has('inscription_requise');
 
         if ($request->hasFile('image')) {
@@ -99,6 +110,12 @@ class EvenementController extends Controller
 
         $evenement->update($validated);
 
+        // Notification uniquement si l'événement vient d'être publié
+        // (passage brouillon → publie, ou annule → publie)
+        if ($statutAvant !== 'publie' && $evenement->statut === 'publie') {
+            $this->notifierAdherents($evenement);
+        }
+
         return redirect()->route('admin.evenements.index')
             ->with('success', 'Événement mis à jour.');
     }
@@ -110,6 +127,27 @@ class EvenementController extends Controller
 
         return redirect()->route('admin.evenements.index')
             ->with('success', 'Événement supprimé.');
+    }
+
+    /**
+     * Notifie tous les adhérents actifs (en queue).
+     */
+    protected function notifierAdherents(Evenement $evenement): void
+    {
+        try {
+            $adherents = Adherent::actifs()->get();
+
+            if ($adherents->isEmpty()) {
+                return;
+            }
+
+            Notification::send($adherents, new NouvelEvenementAdherent($evenement));
+        } catch (\Throwable $e) {
+            Log::error('Notification événement aux adhérents échouée', [
+                'evenement_id' => $evenement->id,
+                'exception'    => $e->getMessage(),
+            ]);
+        }
     }
 
     protected function genererSlugUnique(string $titre): string

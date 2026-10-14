@@ -49,10 +49,10 @@ class AppServiceProvider extends ServiceProvider
                 });
         });
 
-        // ─── Connexion adhérent ─────────────────────────────
+        // ─── Connexion adhérent (email OU téléphone) ────────
         RateLimiter::for('adherent-login', function (Request $request) {
             return Limit::perMinute(5)
-                ->by($request->ip() . '|' . $request->input('email'))
+                ->by($request->ip() . '|' . $request->input('identifiant', ''))
                 ->response(function () {
                     return response()->view('errors.429', [
                         'message' => 'Trop de tentatives de connexion. Réessayez dans une minute.',
