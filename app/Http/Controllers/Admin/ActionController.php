@@ -39,7 +39,7 @@ class ActionController extends Controller
             'ordre' => 'nullable|integer|min:0',
         ]);
 
-        $validated['slug'] = Str::slug($validated['titre']);
+        $validated['slug']  = $this->genererSlugUnique($validated['titre']);
         $validated['actif'] = $request->has('actif');
         $validated['ordre'] = $validated['ordre'] ?? 0;
 
@@ -78,9 +78,7 @@ class ActionController extends Controller
         $validated['ordre'] = $validated['ordre'] ?? 0;
 
         if ($request->hasFile('image')) {
-            // Supprimer l'ancienne image
             $this->images->supprimer($action->image);
-
             $validated['image'] = $this->images->uploadOptimise(
                 $request->file('image'),
                 'actions',
@@ -97,12 +95,22 @@ class ActionController extends Controller
 
     public function destroy(Action $action)
     {
-        // Supprimer l'image associée
         $this->images->supprimer($action->image);
-
         $action->delete();
 
         return redirect()->route('admin.actions.index')
             ->with('success', 'Action supprimée.');
+    }
+
+    protected function genererSlugUnique(string $titre): string
+    {
+        $base = Str::slug($titre);
+        $slug = $base;
+
+        while (Action::where('slug', $slug)->exists()) {
+            $slug = $base . '-' . Str::lower(Str::random(5));
+        }
+
+        return $slug;
     }
 }

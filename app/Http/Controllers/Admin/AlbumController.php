@@ -44,10 +44,10 @@ class AlbumController extends Controller
             'photos.*' => 'image|mimes:jpg,jpeg,png,webp|max:5120',
         ]);
 
-        $validated['slug'] = Str::slug($validated['titre']) . '-' . date('Ymd');
+        $validated['slug']    = $this->genererSlugUnique($validated['titre']);
         $validated['user_id'] = Auth::id();
-        $validated['publie'] = $request->has('publie');
-        $validated['ordre'] = $validated['ordre'] ?? 0;
+        $validated['publie']  = $request->has('publie');
+        $validated['ordre']   = $validated['ordre'] ?? 0;
 
         if ($request->hasFile('couverture')) {
             $validated['couverture'] = $this->images->uploadOptimise(
@@ -60,7 +60,6 @@ class AlbumController extends Controller
 
         $album = Album::create($validated);
 
-        // Upload des photos multiples (une seule fois, optimisées)
         if ($request->hasFile('photos')) {
             foreach ($request->file('photos') as $index => $photo) {
                 $path = $this->images->uploadOptimise(
@@ -105,12 +104,10 @@ class AlbumController extends Controller
         ]);
 
         $validated['publie'] = $request->has('publie');
-        $validated['ordre'] = $validated['ordre'] ?? 0;
+        $validated['ordre']  = $validated['ordre'] ?? 0;
 
         if ($request->hasFile('couverture')) {
-            // Supprimer l'ancienne couverture
             $this->images->supprimer($album->couverture);
-
             $validated['couverture'] = $this->images->uploadOptimise(
                 $request->file('couverture'),
                 'albums',
@@ -127,12 +124,10 @@ class AlbumController extends Controller
 
     public function destroy(Album $album)
     {
-        // Supprimer toutes les photos du dossier
         $dossier = 'albums/' . $album->id;
         if (Storage::disk('public')->exists($dossier)) {
             Storage::disk('public')->deleteDirectory($dossier);
         }
-        // Supprimer la couverture
         $this->images->supprimer($album->couverture);
 
         $album->delete();
@@ -141,9 +136,6 @@ class AlbumController extends Controller
             ->with('success', 'Album supprimé.');
     }
 
-    /**
-     * Ajouter des photos à un album existant (optimisées)
-     */
     public function ajouterPhotos(Request $request, Album $album)
     {
         $request->validate([
@@ -172,9 +164,6 @@ class AlbumController extends Controller
             ->with('success', count($request->file('photos')) . ' photo(s) ajoutée(s).');
     }
 
-    /**
-     * Mettre à jour la légende d'une photo
-     */
     public function majPhoto(Request $request, Photo $photo)
     {
         $validated = $request->validate([
@@ -187,14 +176,10 @@ class AlbumController extends Controller
             ->with('success', 'Légende mise à jour.');
     }
 
-    /**
-     * Supprimer une photo
-     */
     public function supprimerPhoto(Photo $photo)
     {
         $albumId = $photo->album_id;
 
-        // Supprimer le fichier physique
         if (Storage::disk('public')->exists($photo->fichier)) {
             Storage::disk('public')->delete($photo->fichier);
         }
@@ -203,5 +188,17 @@ class AlbumController extends Controller
 
         return redirect()->route('admin.albums.edit', $albumId)
             ->with('success', 'Photo supprimée.');
+    }
+
+    protected function genererSlugUnique(string $titre): string
+    {
+        $base = Str::slug($titre) . '-' . date('Ymd');
+        $slug = $base;
+
+        while (Album::where('slug', $slug)->exists()) {
+            $slug = $base . '-' . Str::lower(Str::random(4));
+        }
+
+        return $slug;
     }
 }

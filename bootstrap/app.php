@@ -17,10 +17,15 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\EnsureTwoFactorVerified::class,
         ]);
 
+        $middleware->validateCsrfTokens(except: [
+            'don/webhook',
+        ]);
+
         $middleware->alias([
-            'admin'    => \App\Http\Middleware\AdminMiddleware::class,
-            'adherent' => \App\Http\Middleware\AdherentMiddleware::class,
-            '2fa'      => \App\Http\Middleware\EnsureTwoFactorVerified::class,
+            'admin'             => \App\Http\Middleware\AdminMiddleware::class,
+            'adherent'          => \App\Http\Middleware\AdherentMiddleware::class,
+            '2fa'               => \App\Http\Middleware\EnsureTwoFactorVerified::class,
+            'password.changed'  => \App\Http\Middleware\EnsurePasswordChanged::class,
         ]);
     })
 
@@ -29,4 +34,3 @@ return Application::configure(basePath: dirname(__DIR__))
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
     })->create();
-

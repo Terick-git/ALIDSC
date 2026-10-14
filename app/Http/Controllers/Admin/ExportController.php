@@ -14,8 +14,19 @@ class ExportController extends Controller
     {
         $query = Adherent::query();
 
+        // Le formulaire de filtrage envoie `statut` = statut_demande
         if ($request->filled('statut')) {
-            $query->where('statut_cotisation', $request->statut);
+            $query->where('statut_demande', $request->statut);
+        }
+
+        if ($request->filled('recherche')) {
+            $q = $request->recherche;
+            $query->where(function ($w) use ($q) {
+                $w->where('nom', 'like', "%{$q}%")
+                    ->orWhere('prenom', 'like', "%{$q}%")
+                    ->orWhere('email', 'like', "%{$q}%")
+                    ->orWhere('telephone', 'like', "%{$q}%");
+            });
         }
 
         $adherents = $query->orderBy('nom')->get();
@@ -28,11 +39,10 @@ class ExportController extends Controller
             // BOM UTF-8 pour Excel (accents corrects)
             fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-            // En-têtes
             fputcsv($handle, [
                 'ID', 'Nom', 'Prénom', 'Email', 'Téléphone', 'Ville', 'Établissement',
                 'Date adhésion', 'Montant cotisation (FCFA)', 'Statut cotisation',
-                'Dernier paiement', 'Mode paiement', 'Actif', 'Notes'
+                'Statut demande', 'Dernier paiement', 'Mode paiement', 'Actif', 'Notes'
             ], ';');
 
             foreach ($adherents as $a) {
@@ -47,6 +57,7 @@ class ExportController extends Controller
                     $a->date_adhesion?->format('d/m/Y'),
                     $a->cotisation_montant,
                     $a->statut_cotisation,
+                    $a->statut_demande,
                     $a->date_dernier_paiement?->format('d/m/Y'),
                     $a->mode_paiement,
                     $a->actif ? 'Oui' : 'Non',
@@ -69,7 +80,6 @@ class ExportController extends Controller
         return response()->streamDownload(function () use ($messages) {
             $handle = fopen('php://output', 'w');
 
-            // BOM UTF-8
             fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
             fputcsv($handle, [

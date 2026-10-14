@@ -16,7 +16,7 @@ class Adherent extends Authenticatable
         'cotisation_proposee', 'date_adhesion', 'cotisation_montant',
         'statut_cotisation', 'statut_demande', 'motif_refus', 'piece_identite',
         'date_dernier_paiement', 'mode_paiement', 'notes', 'actif',
-        'espace_actif', 'derniere_connexion',
+        'espace_actif', 'derniere_connexion', 'must_change_password',
     ];
 
     protected $hidden = [
@@ -24,34 +24,30 @@ class Adherent extends Authenticatable
     ];
 
     protected $casts = [
-        'date_adhesion' => 'date',
-        'date_naissance' => 'date',
+        'date_adhesion'         => 'date',
+        'date_naissance'        => 'date',
         'date_dernier_paiement' => 'date',
-        'email_verified_at' => 'datetime',
-        'derniere_connexion' => 'datetime',
-        'actif' => 'boolean',
-        'espace_actif' => 'boolean',
-        'cotisation_montant' => 'integer',
-        'cotisation_proposee' => 'integer',
+        'email_verified_at'     => 'datetime',
+        'derniere_connexion'    => 'datetime',
+        'actif'                 => 'boolean',
+        'espace_actif'          => 'boolean',
+        'must_change_password'  => 'boolean',
+        'cotisation_montant'    => 'integer',
+        'cotisation_proposee'   => 'integer',
     ];
+
+    // ─── Relations ────────────────────────────────────────
+
+    public function paiements()
+    {
+        return $this->hasMany(AdherentPaiement::class)->latest();
+    }
+
+    // ─── Accessors ────────────────────────────────────────
 
     public function getNomCompletAttribute(): string
     {
         return $this->prenom . ' ' . $this->nom;
-    }
-
-    public static function statutsDemande(): array
-    {
-        return [
-            'brouillon' => 'Brouillon',
-            'en_attente' => 'En attente de validation',
-            'acceptee' => 'Acceptée (en attente de paiement)',
-            'refuse' => 'Refusée',
-            'paiement_en_attente' => 'Paiement en attente',
-            'paiement_validate' => 'Paiement validé',
-            'active' => 'Adhésion active',
-            'expiree' => 'Expirée',
-        ];
     }
 
     public function getStatutDemandeLabelAttribute(): string
@@ -64,9 +60,46 @@ class Adherent extends Authenticatable
         return $this->categorie === 'actif' ? 'Membre actif' : 'Membre simple';
     }
 
-    // Peut accéder à l'espace adhérent si le compte est activé
+    /**
+     * Nombre de jours avant expiration de la cotisation (365j après dernier paiement).
+     * Retourne null si pas de dernier paiement.
+     */
+    public function getJoursAvantExpirationAttribute(): ?int
+    {
+        if (! $this->date_dernier_paiement) {
+            return null;
+        }
+
+        $expiration = $this->date_dernier_paiement->copy()->addYear();
+        return max(0, now()->diffInDays($expiration, false));
+    }
+
+    // ─── Méthodes ─────────────────────────────────────────
+
+    public static function statutsDemande(): array
+    {
+        return [
+            'brouillon'           => 'Brouillon',
+            'en_attente'          => 'En attente de validation',
+            'acceptee'            => 'Acceptée (en attente de paiement)',
+            'refuse'              => 'Refusée',
+            'paiement_en_attente' => 'Paiement en attente',
+            'paiement_validate'   => 'Paiement validé',
+            'active'              => 'Adhésion active',
+            'expiree'             => 'Expirée',
+        ];
+    }
+
     public function peutAccederEspace(): bool
     {
         return $this->espace_actif && $this->statut_demande === 'active';
+    }
+
+    public function aPaiementCetteAnnee(): bool
+    {
+        return $this->paiements()
+            ->where('statut', 'valide')
+            ->where('paid_at', '>=', now()->subYear())
+            ->exists();
     }
 }

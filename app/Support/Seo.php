@@ -202,12 +202,18 @@ class Seo
 
     /**
      * Rend un bloc JSON-LD prêt à insérer.
+     *
+     * Les flags JSON_HEX_* empêchent l'injection via </script> dans une chaîne.
      */
     public static function toScript(array $data): string
     {
         return '<script type="application/ld+json">' . json_encode(
             $data,
-            JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+            JSON_UNESCAPED_UNICODE
+            | JSON_HEX_TAG
+            | JSON_HEX_AMP
+            | JSON_HEX_APOS
+            | JSON_HEX_QUOT
         ) . '</script>';
     }
 }

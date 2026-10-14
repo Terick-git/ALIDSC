@@ -31,9 +31,9 @@ class DocumentController extends Controller
             'ordre' => 'nullable|integer|min:0',
         ]);
 
-        $validated['slug'] = Str::slug($validated['titre']);
-        $validated['actif'] = $request->has('actif');
-        $validated['ordre'] = $validated['ordre'] ?? 0;
+        $validated['slug']    = $this->genererSlugUnique($validated['titre']);
+        $validated['actif']   = $request->has('actif');
+        $validated['ordre']   = $validated['ordre'] ?? 0;
         $validated['user_id'] = auth()->id();
         $validated['fichier'] = $request->file('fichier')->store('documents', 'private');
 
@@ -62,7 +62,6 @@ class DocumentController extends Controller
         $validated['ordre'] = $validated['ordre'] ?? 0;
 
         if ($request->hasFile('fichier')) {
-            // Supprimer l'ancien fichier si présent
             if ($document->fichier && Storage::disk('private')->exists($document->fichier)) {
                 Storage::disk('private')->delete($document->fichier);
             }
@@ -85,5 +84,17 @@ class DocumentController extends Controller
 
         return redirect()->route('admin.documents.index')
             ->with('success', 'Document supprimé.');
+    }
+
+    protected function genererSlugUnique(string $titre): string
+    {
+        $base = Str::slug($titre);
+        $slug = $base;
+
+        while (Document::where('slug', $slug)->exists()) {
+            $slug = $base . '-' . Str::lower(Str::random(5));
+        }
+
+        return $slug;
     }
 }

@@ -62,6 +62,21 @@ class TwoFactorService
     }
 
     /**
+     * Génère le SVG du QR code à partir de l'URI otpauth://.
+     *
+     * Génération 100 % locale (aucun secret n'est envoyé à un tiers).
+     */
+    public function getQrCodeSvg(string $otpauthUri, int $size = 220): string
+    {
+        $renderer = new \BaconQrCode\Renderer\ImageRenderer(
+            new \BaconQrCode\Renderer\RendererStyle\RendererStyle($size),
+            new \BaconQrCode\Renderer\Image\SvgImageBackEnd()
+        );
+
+        return (new \BaconQrCode\Writer($renderer))->writeString($otpauthUri);
+    }
+
+    /**
      * Génère 8 codes de secours (format XXXX-XXXX).
      */
     public function generateRecoveryCodes(int $count = 8): array

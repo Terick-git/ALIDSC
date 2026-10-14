@@ -26,4 +26,12 @@ class AdminSidebarComposer
             ];
         });
     }
+
+    /**
+     * Invalide le cache (appelé par les observers de modèles).
+     */
+    public static function forgetCache(): void
+    {
+        Cache::forget(self::CACHE_KEY);
+    }
 }

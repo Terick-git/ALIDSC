@@ -9,35 +9,48 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureTwoFactorVerified
 {
-    /**
-     * Durée de validité de la session 2FA (en minutes).
-     */
-    protected const SESSION_TTL = 120; // 2 heures
+    protected const SESSION_TTL = 120; // minutes
 
     public function handle(Request $request, Closure $next): Response
     {
+        // ─────────────────────────────────────────────────────────────
+        // Bypass 2FA en environnement de test.
+        // Voir phpunit.xml (SKIP_2FA_ENFORCEMENT=true).
+        //
+        // TwoFactorAuthTest force ce flag à false dans son setUp()
+        // pour tester le comportement réel du middleware.
+        //
+        // ⚠️ En production, ce flag est false par défaut : la 2FA reste
+        //    obligatoire pour tous les admins.
+        // ─────────────────────────────────────────────────────────────
+        if (config('app.skip_2fa_enforcement')) {
+            return $next($request);
+        }
+
         $user = $request->user();
 
-        // 1. Aucun utilisateur connecté → laisser passer (middleware `auth` gère)
+        // 1. Aucun utilisateur connecté → laisse passer
         if (! $user) {
             return $next($request);
         }
 
-        // ═══════════════════════════════════════════════════════════
-        // 2. IMPORTANT : la 2FA ne s'applique qu'aux admins (User)
-        //    Les adhérents (Adherent) n'ont pas de 2FA → on les laisse passer.
-        // ═══════════════════════════════════════════════════════════
+        // 2. La 2FA ne s'applique qu'aux admins (User)
         if (! $user instanceof User) {
             return $next($request);
         }
 
-        // 3. 2FA non activé sur ce compte → pas de challenge
-        if (! $user->hasTwoFactorEnabled()) {
+        // 3. Routes 2FA et logout → toujours accessibles (évite les boucles)
+        if ($request->routeIs('2fa.*') || $request->routeIs('logout')) {
             return $next($request);
         }
 
-        // 4. Routes 2FA et logout → ne pas rediriger (évite les boucles)
-        if ($request->routeIs('2fa.*') || $request->routeIs('logout')) {
+        // 4. Admin sans 2FA → doit l'activer immédiatement
+        if (! $user->hasTwoFactorEnabled()) {
+            if ($user->isAdmin()) {
+                return redirect()
+                    ->route('2fa.setup')
+                    ->with('warning', 'La 2FA est obligatoire pour tous les administrateurs. Activez-la pour continuer.');
+            }
             return $next($request);
         }
 

@@ -40,7 +40,8 @@ class ActualiteController extends Controller
             'interne'  => 'boolean',
         ]);
 
-        $validated['slug']    = Str::slug($validated['titre']);
+        // Slug unique : slug + suffixe aléatoire pour éviter les collisions
+        $validated['slug']    = $this->genererSlugUnique($validated['titre']);
         $validated['user_id'] = Auth::id();
         $validated['publie']  = $request->boolean('publie');
         $validated['interne'] = $request->boolean('interne');
@@ -103,5 +104,24 @@ class ActualiteController extends Controller
         $actualite->delete();
         return redirect()->route('admin.actualites.index')
             ->with('success', 'Actualité supprimée.');
+    }
+
+    /**
+     * Génère un slug unique (suffixe aléatoire si collision).
+     */
+    protected function genererSlugUnique(string $titre, ?int $ignoreId = null): string
+    {
+        $base = Str::slug($titre);
+        $slug = $base;
+
+        while (
+            Actualite::where('slug', $slug)
+                ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
+                ->exists()
+        ) {
+            $slug = $base . '-' . Str::lower(Str::random(5));
+        }
+
+        return $slug;
     }
 }

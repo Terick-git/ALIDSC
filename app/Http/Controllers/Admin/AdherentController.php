@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use App\Models\AdherentPaiement;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AdherentController extends Controller
 {
@@ -92,7 +95,6 @@ class AdherentController extends Controller
 
     public function destroy(Adherent $adherent): RedirectResponse
     {
-        // Nettoyage du fichier privé (pièce d'identité) avant suppression
         if ($adherent->piece_identite && Storage::disk('private')->exists($adherent->piece_identite)) {
             Storage::disk('private')->delete($adherent->piece_identite);
         }
@@ -112,14 +114,30 @@ class AdherentController extends Controller
         $validated = $request->validate([
             'mode_paiement' => ['required', 'in:mobile_money,especes,virement,autre'],
             'montant'       => ['required', 'integer', 'min:1'],
+            'notes'         => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $adherent->update([
-            'statut_cotisation'     => 'a_jour',
-            'date_dernier_paiement' => now(),
-            'mode_paiement'         => $validated['mode_paiement'],
-            'cotisation_montant'    => $validated['montant'],
-        ]);
+        DB::transaction(function () use ($adherent, $validated) {
+            // 1. Créer l'enregistrement du paiement
+            AdherentPaiement::create([
+                'adherent_id'    => $adherent->id,
+                'reference'      => AdherentPaiement::generateReference(),
+                'montant'        => $validated['montant'],
+                'mode_paiement'  => $validated['mode_paiement'],
+                'statut'         => 'valide',
+                'paid_at'        => now(),
+                'notes'          => $validated['notes'] ?? null,
+                'enregistre_par' => Auth::id(),
+            ]);
+
+            // 2. Mettre à jour le statut de l'adhérent
+            $adherent->update([
+                'statut_cotisation'     => 'a_jour',
+                'date_dernier_paiement' => now(),
+                'mode_paiement'         => $validated['mode_paiement'],
+                'cotisation_montant'    => $validated['montant'],
+            ]);
+        });
 
         return redirect()
             ->route('admin.adherents.show', $adherent)
@@ -180,9 +198,21 @@ class AdherentController extends Controller
 
     /**
      * Activer l'adhésion et envoyer les identifiants par email.
+     *
+     * Garde-fous : la demande doit avoir été acceptée ET la cotisation
+     * doit être à jour avant toute activation.
      */
+
     public function activer(Adherent $adherent): RedirectResponse
     {
+        if (! in_array($adherent->statut_demande, ['acceptee', 'paiement_validate'], true)) {
+            return back()->with('error', 'Cette demande doit d\'abord être acceptée.');
+        }
+
+        if ($adherent->statut_cotisation !== 'a_jour') {
+            return back()->with('error', 'Le paiement de la cotisation doit être enregistré avant l\'activation.');
+        }
+
         $motDePasse = Str::upper(Str::random(4)) . random_int(1000, 9999);
 
         $adherent->update([
@@ -191,7 +221,8 @@ class AdherentController extends Controller
             'actif'                 => true,
             'espace_actif'          => true,
             'password'              => Hash::make($motDePasse),
-            'date_dernier_paiement' => now(),
+            'must_change_password'  => true, // ⚠️ Forcé au premier login
+            'date_dernier_paiement' => $adherent->date_dernier_paiement ?? now(),
         ]);
 
         try {

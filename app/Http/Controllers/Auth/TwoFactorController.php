@@ -52,7 +52,9 @@ class TwoFactorController extends Controller
         // Tentative 1 : code TOTP
         $secret = $user->getTwoFactorSecret();
         if ($secret && $this->twoFactor->verify($secret, $code)) {
-            return $this->markVerified($request)
+            $this->markSessionVerified($request);
+
+            return $this->redirectAfterChallenge($request)
                 ->with('success', 'Vérification réussie.');
         }
 
@@ -63,7 +65,9 @@ class TwoFactorController extends Controller
             $user->setTwoFactorRecoveryCodes($recoveryCodes);
             $user->save();
 
-            return $this->markVerified($request)
+            $this->markSessionVerified($request);
+
+            return $this->redirectAfterChallenge($request)
                 ->with('status', 'Code de secours utilisé. Il a été révoqué.');
         }
 
@@ -97,17 +101,12 @@ class TwoFactorController extends Controller
             config('app.name', 'ALIDSC')
         );
 
-        // Génération locale du QR code (aucun secret n'est envoyé à un tiers)
-        $renderer = new \BaconQrCode\Renderer\ImageRenderer(
-            new \BaconQrCode\Renderer\RendererStyle\RendererStyle(220),
-            new \BaconQrCode\Renderer\Image\SvgImageBackEnd()
-        );
-        $writer = new \BaconQrCode\Writer($renderer);
-        $qrCodeSvg = $writer->writeString($qrCodeUri);
+        // Génération locale du QR code (aucun secret envoyé à un tiers)
+        $qrCodeSvg = $this->twoFactor->getQrCodeSvg($qrCodeUri);
 
         return view('auth.2fa.setup', [
-            'secret'     => $secret,
-            'qrCodeSvg'  => $qrCodeSvg,
+            'secret'    => $secret,
+            'qrCodeSvg' => $qrCodeSvg,
         ]);
     }
 
@@ -143,8 +142,10 @@ class TwoFactorController extends Controller
         $user->setTwoFactorRecoveryCodes($recoveryCodes);
         $user->save();
 
-        // Session marquée vérifiée pour éviter d'être redirigé immédiatement
-        $this->markVerified($request);
+        // Effet de bord uniquement : la session est marquée vérifiée.
+        // La redirection reste ici — l'utilisateur doit voir ses codes
+        // de secours immédiatement après l'activation.
+        $this->markSessionVerified($request);
 
         return redirect()->route('2fa.recovery-codes')
             ->with('status', '2FA activé. Conservez vos codes de secours en lieu sûr.');
@@ -212,14 +213,30 @@ class TwoFactorController extends Controller
     }
 
     // ═══════════════════════════════════════════════════════════
-    // UTILITAIRE
+    // UTILITAIRES
     // ═══════════════════════════════════════════════════════════
 
-    protected function markVerified(Request $request): RedirectResponse
+    /**
+     * Marque la session utilisateur comme « 2FA validée ».
+     *
+     * Régénère aussi l'ID de session pour prévenir la fixation de session.
+     * N'effectue AUCUNE redirection — laisse chaque appelant décider.
+     */
+    protected function markSessionVerified(Request $request): void
     {
+        // Régénère l'ID de session (anti-fixation). Les données sont préservées.
+        $request->session()->regenerate();
+
         $request->session()->put('2fa_verified_user_id', $request->user()->id);
         $request->session()->put('2fa_verified_at', now()->timestamp);
+    }
 
+    /**
+     * Construit la redirection après un challenge 2FA réussi :
+     * URL d'origine si elle a été mémorisée, sinon dashboard.
+     */
+    protected function redirectAfterChallenge(Request $request): RedirectResponse
+    {
         $intended = $request->session()->pull('2fa.intended_url');
 
         return redirect()->to($intended ?: route('dashboard'));

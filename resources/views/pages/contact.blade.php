@@ -24,38 +24,55 @@
         <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 6rem; align-items: start;">
 
             {{-- COORDONNÉES --}}
-            <div>
-                <div style="padding-bottom: 2rem; border-bottom: 1px solid var(--line); margin-bottom: 2rem;">
-                    <span class="meta" style="display:block; margin-bottom: 1rem; color: var(--blue);">Siège social</span>
-                    <p class="para">
-                        Maroua
-                        Extrême-Nord
-                        Cameroun
-                    </p>
-                </div>
-
-                <div style="padding-bottom: 2rem; border-bottom: 1px solid var(--line); margin-bottom: 2rem;">
-                    <span class="meta" style="display:block; margin-bottom: 1rem; color: var(--blue);">Téléphone</span>
-                    <p class="para">
-                        <a href="tel:+237690856383" style="display:block;">690 856 383</a>
-                        <a href="tel:+237696118592" style="display:block;">696 118 592</a>
-                    </p>
-                </div>
-
-                <div style="padding-bottom: 2rem; border-bottom: 1px solid var(--line); margin-bottom: 2rem;">
-                    <span class="meta" style="display:block; margin-bottom: 1rem; color: var(--blue);">Email</span>
-                    <p class="para">
-                        <a href="mailto:contact@alidsc.org">contact@alidsc.org</a>
-                    </p>
-                </div>
-
                 <div>
-                    <span class="meta" style="display:block; margin-bottom: 1rem; color: var(--blue);">WhatsApp</span>
-                    <p class="para">
-                        <a href="https://wa.me/237696506940" target="_blank">Discuter sur WhatsApp →</a>
-                    </p>
+                    <div style="padding-bottom: 2rem; border-bottom: 1px solid var(--line); margin-bottom: 2rem;">
+                        <span class="meta" style="display:block; margin-bottom: 1rem; color: var(--blue);">Siège social</span>
+                        <p class="para" style="margin-bottom: 1rem;">
+                            <strong style="color: var(--marine);">ALIDSC</strong><br>
+                            Pitoire<br>
+                            Derrière la CNPS<br>
+                            Maroua, Extrême-Nord<br>
+                            Cameroun
+                        </p>
+                        <a href="https://maps.google.com/?q=Maroua+Pitoire+CNPS+Cameroun"
+                        target="_blank" rel="noopener"
+                        style="font-size: .875rem; color: var(--blue); font-weight: 600;">
+                            Ouvrir dans Google Maps →
+                        </a>
+                    </div>
+
+                    <div style="padding-bottom: 2rem; border-bottom: 1px solid var(--line); margin-bottom: 2rem;">
+                        <span class="meta" style="display:block; margin-bottom: 1rem; color: var(--blue);">Horaires</span>
+                        <p class="para" style="margin: 0;">
+                            Lundi – Vendredi : 8h – 18h<br>
+                            Samedi : 9h – 13h
+                        </p>
+                    </div>
+
+                    <div style="padding-bottom: 2rem; border-bottom: 1px solid var(--line); margin-bottom: 2rem;">
+                        <span class="meta" style="display:block; margin-bottom: 1rem; color: var(--blue);">Téléphone</span>
+                        <p class="para">
+                            <a href="tel:+237690856383" style="display:block;">690 856 383</a>
+                            <a href="tel:+237696118592" style="display:block;">696 118 592</a>
+                        </p>
+                    </div>
+
+                    <div style="padding-bottom: 2rem; border-bottom: 1px solid var(--line); margin-bottom: 2rem;">
+                        <span class="meta" style="display:block; margin-bottom: 1rem; color: var(--blue);">Email</span>
+                        <p class="para">
+                            <a href="mailto:contact@alidsc.org">contact@alidsc.org</a>
+                        </p>
+                    </div>
+
+                    <div>
+                        <span class="meta" style="display:block; margin-bottom: 1rem; color: var(--blue);">WhatsApp</span>
+                        <p class="para">
+                            <a href="https://wa.me/237696506940" target="_blank" rel="noopener">
+                                Discuter sur WhatsApp →
+                            </a>
+                        </p>
+                    </div>
                 </div>
-            </div>
 
             {{-- FORMULAIRE --}}
             <div>

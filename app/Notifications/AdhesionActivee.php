@@ -35,7 +35,7 @@ class AdhesionActivee extends Notification
             ->line('**Vos identifiants de connexion :**')
             ->line('Email : ' . $this->adherent->email)
             ->line('Mot de passe temporaire : **' . $this->motDePasse . '**')
-            ->line('⚠️ Pour votre sécurité, changez ce mot de passe dès votre première connexion.')
+            ->line('⚠️ **À votre première connexion, vous serez automatiquement invité à changer ce mot de passe.**')
             ->action('Accéder à mon espace', url('/adherent/login'))
             ->line('Merci encore pour votre engagement à nos côtés. Ensemble, nous construisons l\'avenir de la jeunesse camerounaise.')
             ->salutation('Cordialement, l\'équipe ALIDSC');

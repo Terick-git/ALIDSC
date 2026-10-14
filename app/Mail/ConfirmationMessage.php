@@ -4,12 +4,13 @@ namespace App\Mail;
 
 use App\Models\Message;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class ConfirmationMessage extends Mailable
+class ConfirmationMessage extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -27,7 +28,7 @@ class ConfirmationMessage extends Mailable
         return new Content(
             view: 'emails.confirmation-message',
             with: [
-                'contact' => $this->message,  // ← on renomme en "contact"
+                'contact' => $this->message,
             ],
         );
     }

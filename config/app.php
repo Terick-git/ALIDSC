@@ -123,4 +123,19 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | 2FA enforcement bypass
+    |--------------------------------------------------------------------------
+    |
+    | Permet de désactiver l'obligation d'activation 2FA pour les admins.
+    | Activé automatiquement en environnement de test (phpunit.xml) pour
+    | ne pas casser les tests admin existants.
+    |
+    | ⚠️ Ne JAMAIS passer à true en production.
+    |
+    */
+
+    'skip_2fa_enforcement' => env('SKIP_2FA_ENFORCEMENT', false),
+
 ];

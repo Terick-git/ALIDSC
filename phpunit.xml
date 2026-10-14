@@ -32,5 +32,7 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <!-- Bypass 2FA par défaut dans les tests ; TwoFactorAuthTest le réactive explicitement -->
+        <env name="SKIP_2FA_ENFORCEMENT" value="true"/>
     </php>
 </phpunit>

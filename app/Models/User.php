@@ -11,8 +11,7 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    const ROLE_ADMIN = 'admin';
-    const ROLE_EDITEUR = 'editeur';
+    const ROLE_ADMIN  = 'admin';
     const ROLE_MEMBRE = 'membre';
 
     protected $fillable = ['name', 'email', 'password', 'role'];
@@ -22,20 +21,15 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at'         => 'datetime',
-            'password'                  => 'hashed',
-            'two_factor_confirmed_at'   => 'datetime',
+            'email_verified_at'       => 'datetime',
+            'password'                => 'hashed',
+            'two_factor_confirmed_at' => 'datetime',
         ];
     }
 
     public function isAdmin(): bool
     {
         return $this->role === self::ROLE_ADMIN;
-    }
-
-    public function isEditeur(): bool
-    {
-        return in_array($this->role, [self::ROLE_ADMIN, self::ROLE_EDITEUR]);
     }
 
     // ─── 2FA ─────────────────────────────────────────────
@@ -46,9 +40,6 @@ class User extends Authenticatable
             && !is_null($this->two_factor_confirmed_at);
     }
 
-    /**
-     * Retourne le secret TOTP en clair (déchiffré).
-     */
     public function getTwoFactorSecret(): ?string
     {
         return $this->two_factor_secret
@@ -56,17 +47,11 @@ class User extends Authenticatable
             : null;
     }
 
-    /**
-     * Définit le secret TOTP (chiffré en base).
-     */
     public function setTwoFactorSecret(string $secret): void
     {
         $this->two_factor_secret = Crypt::encryptString($secret);
     }
 
-    /**
-     * Retourne les codes de secours en clair.
-     */
     public function getTwoFactorRecoveryCodes(): array
     {
         if (!$this->two_factor_recovery_codes) {
@@ -76,9 +61,6 @@ class User extends Authenticatable
         return json_decode(Crypt::decryptString($this->two_factor_recovery_codes), true) ?? [];
     }
 
-    /**
-     * Définit les codes de secours (chiffrés en base).
-     */
     public function setTwoFactorRecoveryCodes(array $codes): void
     {
         $this->two_factor_recovery_codes = Crypt::encryptString(json_encode($codes));

@@ -54,9 +54,10 @@
 </head>
 <body class="antialiased">
 
-    <div class="min-h-screen flex">
+    <div class="min-h-screen flex" x-data="adminSidebar()" x-init="init()">
 
-        <aside class="admin-sidebar w-64 flex-shrink-0 p-6" x-data="adminSidebar()" x-init="init()">
+        {{-- ═══ SIDEBAR DESKTOP ═══ --}}
+        <aside class="admin-sidebar hidden lg:flex w-64 flex-shrink-0 flex-col p-6">
             <a href="{{ route('dashboard') }}" class="flex items-center gap-3 mb-8">
                 <div class="w-10 h-10 rounded-full bg-white p-0.5 overflow-hidden">
                     <img src="{{ asset('images/logo-alidsc.jpg') }}" alt="ALIDSC" class="w-full h-full object-cover rounded-full">
@@ -64,74 +65,9 @@
                 <span class="font-display font-bold text-white text-lg">ALIDSC</span>
             </a>
 
-            <nav class="flex flex-col gap-1 text-sm">
-                <a href="{{ route('dashboard') }}"
-                   class="block px-3 py-2 rounded font-medium {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                    Tableau de bord
-                </a>
+            @include('admin.partials.nav')
 
-                <a href="{{ route('admin.actualites.index') }}"
-                   class="block px-3 py-2 rounded font-medium {{ request()->routeIs('admin.actualites.*') ? 'active' : '' }}">
-                    Actualités
-                </a>
-
-                <a href="{{ route('admin.actions.index') }}"
-                   class="block px-3 py-2 rounded font-medium {{ request()->routeIs('admin.actions.*') ? 'active' : '' }}">
-                    Actions
-                </a>
-
-                <a href="{{ route('admin.partenaires.index') }}"
-                   class="block px-3 py-2 rounded font-medium {{ request()->routeIs('admin.partenaires.*') ? 'active' : '' }}">
-                    Partenaires
-                </a>
-
-                <a href="{{ route('admin.adherents.index') }}"
-                   class="flex items-center justify-between px-3 py-2 rounded font-medium {{ request()->routeIs('admin.adherents.*') ? 'active' : '' }}">
-                    <span>Adhérents</span>
-                    <template x-if="counts.adherents_en_attente > 0">
-                        <span class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold"
-                              style="background: #F59E0B; color: white;"
-                              x-text="counts.adherents_en_attente"></span>
-                    </template>
-                </a>
-
-                <a href="{{ route('admin.documents.index') }}"
-                   class="block px-3 py-2 rounded font-medium {{ request()->routeIs('admin.documents.*') ? 'active' : '' }}">
-                    Documents
-                </a>
-
-                <a href="{{ route('admin.temoignages.index') }}"
-                   class="block px-3 py-2 rounded font-medium {{ request()->routeIs('admin.temoignages.*') ? 'active' : '' }}">
-                    Témoignages
-                </a>
-
-                <a href="{{ route('admin.evenements.index') }}"
-                   class="block px-3 py-2 rounded font-medium {{ request()->routeIs('admin.evenements.*') ? 'active' : '' }}">
-                    Événements
-                </a>
-
-                <a href="{{ route('admin.albums.index') }}"
-                   class="block px-3 py-2 rounded font-medium {{ request()->routeIs('admin.albums.*') ? 'active' : '' }}">
-                    Albums
-                </a>
-
-                <a href="{{ route('admin.ressources.index') }}"
-                   class="block px-3 py-2 rounded font-medium {{ request()->routeIs('admin.ressources.*') ? 'active' : '' }}">
-                    Ressources
-                </a>
-
-                <a href="{{ route('admin.messages.index') }}"
-                   class="flex items-center justify-between px-3 py-2 rounded font-medium {{ request()->routeIs('admin.messages.*') ? 'active' : '' }}">
-                    <span>Messages</span>
-                    <template x-if="counts.messages_non_lus > 0">
-                        <span class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold"
-                              style="background: #DC2626; color: white;"
-                              x-text="counts.messages_non_lus"></span>
-                    </template>
-                </a>
-            </nav>
-
-            <div class="mt-6 pt-4 border-t border-white/10">
+            <div class="mt-auto pt-6 border-t border-white/10">
                 <div class="flex items-center gap-2 text-[10px] text-white/30 uppercase tracking-wider">
                     <span class="w-1.5 h-1.5 rounded-full"
                           :style="refreshing ? 'background:#F59E0B' : 'background:#10B981;'"></span>
@@ -140,16 +76,68 @@
             </div>
         </aside>
 
+        {{-- ═══ DRAWER MOBILE ═══ --}}
+        <div
+            x-show="mobileOpen"
+            x-transition.opacity
+            @click="mobileOpen = false"
+            class="fixed inset-0 bg-black/50 z-50 lg:hidden"
+            style="display: none;">
+        </div>
+
+        <aside
+            x-show="mobileOpen"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="-translate-x-full"
+            x-transition:enter-end="translate-x-0"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="translate-x-0"
+            x-transition:leave-end="-translate-x-full"
+            class="admin-sidebar fixed top-0 left-0 bottom-0 w-72 max-w-[85vw] z-50 overflow-y-auto p-6 lg:hidden"
+            style="display: none;"
+            @keydown.escape.window="mobileOpen = false">
+
+            <div class="flex items-center justify-between mb-8">
+                <a href="{{ route('dashboard') }}" class="flex items-center gap-3" @click="mobileOpen = false">
+                    <div class="w-10 h-10 rounded-full bg-white p-0.5 overflow-hidden">
+                        <img src="{{ asset('images/logo-alidsc.jpg') }}" alt="ALIDSC" class="w-full h-full object-cover rounded-full">
+                    </div>
+                    <span class="font-display font-bold text-white text-lg">ALIDSC</span>
+                </a>
+                <button @click="mobileOpen = false" aria-label="Fermer"
+                        style="color:rgba(255,255,255,0.6); font-size:1.5rem; line-height:1;">×</button>
+            </div>
+
+            @include('admin.partials.nav', ['mobileMode' => true])
+        </aside>
+
+        {{-- ═══ CONTENU ═══ --}}
         <div class="flex-1 min-w-0">
 
-            <header class="bg-white border-b" style="border-color: var(--line);">
-                <div class="px-8 py-4 flex items-center justify-between gap-4">
-                    <div class="min-w-0">
-                        @yield('header')
+            <header class="bg-white border-b sticky top-0 z-40" style="border-color: var(--line);">
+                <div class="px-4 sm:px-8 py-4 flex items-center justify-between gap-4">
+
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                        {{-- Hamburger mobile --}}
+                        <button
+                            @click="mobileOpen = true"
+                            class="lg:hidden inline-flex items-center justify-center w-10 h-10 -ml-2 rounded"
+                            aria-label="Ouvrir le menu"
+                            style="color: var(--navy);">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="4" y1="6" x2="20" y2="6"></line>
+                                <line x1="4" y1="12" x2="20" y2="12"></line>
+                                <line x1="4" y1="18" x2="20" y2="18"></line>
+                            </svg>
+                        </button>
+
+                        <div class="min-w-0 flex-1">
+                            @yield('header')
+                        </div>
                     </div>
 
                     <div class="flex items-center gap-4 flex-shrink-0">
-                        <a href="{{ route('home') }}" target="_blank" class="text-sm text-gray-600 hover:text-gray-900">
+                        <a href="{{ route('home') }}" target="_blank" class="hidden sm:inline text-sm text-gray-600 hover:text-gray-900">
                             Voir le site →
                         </a>
 
@@ -163,7 +151,7 @@
                 </div>
             </header>
 
-            <main class="p-8">
+            <main class="p-4 sm:p-8">
 
                 @if(session('success'))
                     <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 text-green-900 text-sm rounded">
@@ -191,6 +179,7 @@
                     adherents_en_attente: {{ $sidebarCounts['adherents_en_attente'] ?? 0 }},
                 },
                 refreshing: false,
+                mobileOpen: false,
 
                 init() {
                     setInterval(() => this.refresh(), 60000);

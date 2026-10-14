@@ -18,6 +18,12 @@ class TwoFactorAuthTest extends TestCase
     {
         parent::setUp();
 
+        // ⚠️ Ce test vérifie le comportement RÉEL du middleware 2FA.
+        // On force donc l'activation du bypass à false pour cette suite,
+        // sinon les assertions sur les redirections 2FA ne seraient pas
+        // testées.
+        config(['app.skip_2fa_enforcement' => false]);
+
         $this->user = User::factory()->create(['role' => 'admin']);
         $this->twoFactor = app(TwoFactorService::class);
     }

@@ -41,7 +41,7 @@ class PartenaireController extends Controller
             'ordre' => 'nullable|integer|min:0',
         ]);
 
-        $validated['slug'] = Str::slug($validated['nom']);
+        $validated['slug']  = $this->genererSlugUnique($validated['nom']);
         $validated['actif'] = $request->has('actif');
         $validated['ordre'] = $validated['ordre'] ?? 0;
 
@@ -82,9 +82,7 @@ class PartenaireController extends Controller
         $validated['ordre'] = $validated['ordre'] ?? 0;
 
         if ($request->hasFile('logo')) {
-            // Supprimer l'ancien logo
             $this->images->supprimer($partenaire->logo);
-
             $validated['logo'] = $this->images->uploadOptimise(
                 $request->file('logo'),
                 'partenaires',
@@ -101,12 +99,22 @@ class PartenaireController extends Controller
 
     public function destroy(Partenaire $partenaire)
     {
-        // Supprimer le logo
         $this->images->supprimer($partenaire->logo);
-
         $partenaire->delete();
 
         return redirect()->route('admin.partenaires.index')
             ->with('success', 'Partenaire supprimé.');
+    }
+
+    protected function genererSlugUnique(string $nom): string
+    {
+        $base = Str::slug($nom);
+        $slug = $base;
+
+        while (Partenaire::where('slug', $slug)->exists()) {
+            $slug = $base . '-' . Str::lower(Str::random(5));
+        }
+
+        return $slug;
     }
 }

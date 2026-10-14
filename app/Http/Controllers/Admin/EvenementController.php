@@ -45,7 +45,7 @@ class EvenementController extends Controller
             'statut' => 'required|in:brouillon,publie,annule',
         ]);
 
-        $validated['slug'] = Str::slug($validated['titre']) . '-' . date('Ymd');
+        $validated['slug']    = $this->genererSlugUnique($validated['titre']);
         $validated['user_id'] = Auth::id();
         $validated['inscription_requise'] = $request->has('inscription_requise');
 
@@ -88,9 +88,7 @@ class EvenementController extends Controller
         $validated['inscription_requise'] = $request->has('inscription_requise');
 
         if ($request->hasFile('image')) {
-            // Supprimer l'ancienne image
             $this->images->supprimer($evenement->image);
-
             $validated['image'] = $this->images->uploadOptimise(
                 $request->file('image'),
                 'evenements',
@@ -107,12 +105,22 @@ class EvenementController extends Controller
 
     public function destroy(Evenement $evenement)
     {
-        // Supprimer l'image
         $this->images->supprimer($evenement->image);
-
         $evenement->delete();
 
         return redirect()->route('admin.evenements.index')
             ->with('success', 'Événement supprimé.');
+    }
+
+    protected function genererSlugUnique(string $titre): string
+    {
+        $base = Str::slug($titre);
+        $slug = $base;
+
+        while (Evenement::where('slug', $slug)->exists()) {
+            $slug = $base . '-' . Str::lower(Str::random(5));
+        }
+
+        return $slug;
     }
 }

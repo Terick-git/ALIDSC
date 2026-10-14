@@ -10,13 +10,14 @@ use RuntimeException;
 class ImageService
 {
     /**
-     * Upload et optimise une image (redimension + conversion WebP)
+     * Upload et optimise une image (redimension + conversion WebP si dispo).
+     *
+     * @return string Chemin relatif (avec extension cohérente au contenu réel)
      */
     public function uploadOptimise(UploadedFile $file, string $dossier, int $largeurMax = 1920, int $qualite = 85): string
     {
-        $nomFichier = Str::random(40) . '.webp';
-        $chemin = $dossier . '/' . $nomFichier;
-        $cheminComplet = Storage::disk('public')->path($chemin);
+        $baseSansExt   = $dossier . '/' . Str::random(40);
+        $cheminComplet = Storage::disk('public')->path($baseSansExt);
 
         if (!Storage::disk('public')->exists($dossier)) {
             Storage::disk('public')->makeDirectory($dossier);
@@ -24,33 +25,31 @@ class ImageService
 
         $image = $this->chargerImage($file->getRealPath());
         $image = $this->redimensionner($image, $largeurMax);
-        $this->sauvegarderWebp($image, $cheminComplet, $qualite);
+        $ext   = $this->sauvegarder($image, $cheminComplet, $qualite);
         imagedestroy($image);
 
-        return $chemin;
+        return $baseSansExt . '.' . $ext;
     }
 
     /**
-     * Upload une vignette carrée (crop centré)
+     * Upload une vignette carrée (crop centré).
      */
     public function uploadVignette(UploadedFile $file, string $dossier, int $taille = 400): string
     {
-        $nomFichier = Str::random(40) . '.webp';
-        $chemin = $dossier . '/' . $nomFichier;
-        $cheminComplet = Storage::disk('public')->path($chemin);
+        $baseSansExt   = $dossier . '/' . Str::random(40);
+        $cheminComplet = Storage::disk('public')->path($baseSansExt);
 
         if (!Storage::disk('public')->exists($dossier)) {
             Storage::disk('public')->makeDirectory($dossier);
         }
 
-        $source = $this->chargerImage($file->getRealPath());
+        $source     = $this->chargerImage($file->getRealPath());
         $largeurSrc = imagesx($source);
         $hauteurSrc = imagesy($source);
 
-        // Calcul du crop centré
         $cote = min($largeurSrc, $hauteurSrc);
-        $x = (int) (($largeurSrc - $cote) / 2);
-        $y = (int) (($hauteurSrc - $cote) / 2);
+        $x    = (int) (($largeurSrc - $cote) / 2);
+        $y    = (int) (($hauteurSrc - $cote) / 2);
 
         $vignette = imagecreatetruecolor($taille, $taille);
         imagealphablending($vignette, false);
@@ -62,17 +61,14 @@ class ImageService
             $taille, $taille, $cote, $cote
         );
 
-        $this->sauvegarderWebp($vignette, $cheminComplet, 85);
+        $ext = $this->sauvegarder($vignette, $cheminComplet, 85);
 
         imagedestroy($source);
         imagedestroy($vignette);
 
-        return $chemin;
+        return $baseSansExt . '.' . $ext;
     }
 
-    /**
-     * Supprimer une image
-     */
     public function supprimer(?string $chemin): void
     {
         if ($chemin && Storage::disk('public')->exists($chemin)) {
@@ -80,9 +76,6 @@ class ImageService
         }
     }
 
-    /**
-     * Charge une image depuis un fichier (JPG, PNG, WebP, GIF)
-     */
     private function chargerImage(string $chemin)
     {
         $type = exif_imagetype($chemin);
@@ -96,9 +89,6 @@ class ImageService
         };
     }
 
-    /**
-     * Redimensionne proportionnellement si l'image est trop large
-     */
     private function redimensionner($image, int $largeurMax)
     {
         $largeur = imagesx($image);
@@ -112,8 +102,6 @@ class ImageService
         $nouvelleHauteur = (int) (($hauteur / $largeur) * $nouvelleLargeur);
 
         $nouvelle = imagecreatetruecolor($nouvelleLargeur, $nouvelleHauteur);
-
-        // Préserver la transparence (PNG)
         imagealphablending($nouvelle, false);
         imagesavealpha($nouvelle, true);
 
@@ -130,16 +118,20 @@ class ImageService
     }
 
     /**
-     * Sauvegarde une image en WebP
+     * Sauvegarde l'image dans le format le plus adapté.
+     *
+     * @return string Extension réellement écrite ('webp' ou 'jpg')
      */
-    private function sauvegarderWebp($image, string $cheminComplet, int $qualite = 85): void
+    private function sauvegarder($image, string $cheminBaseSansExt, int $qualite = 85): string
     {
-        if (!function_exists('imagewebp')) {
-            // Fallback JPEG si WebP n'est pas dispo
-            imagejpeg($image, $cheminComplet, $qualite);
-            return;
+        // WebP si disponible (PHP >= 5.4 avec GD compilé)
+        if (function_exists('imagewebp')) {
+            imagewebp($image, $cheminBaseSansExt . '.webp', $qualite);
+            return 'webp';
         }
 
-        imagewebp($image, $cheminComplet, $qualite);
+        // Fallback JPEG (universel)
+        imagejpeg($image, $cheminBaseSansExt . '.jpg', $qualite);
+        return 'jpg';
     }
 }

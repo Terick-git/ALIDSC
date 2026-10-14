@@ -20,70 +20,73 @@ use App\Http\Controllers\SitemapController;
 |--------------------------------------------------------------------------
 */
 
-// Sitemap
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
-// Accueil
 Route::get('/', [ActualiteController::class, 'home'])->name('home');
 
-// Actualités
 Route::get('/actualites', [ActualiteController::class, 'index'])->name('actualites');
 Route::get('/actualites/{slug}', [ActualiteController::class, 'show'])->name('actualites.show');
 
-// Actions
 Route::get('/nos-actions', [ActionController::class, 'index'])->name('actions');
 Route::get('/nos-actions/{slug}', [ActionController::class, 'show'])->name('actions.show');
 
-// Pages statiques
 Route::view('/a-propos', 'pages.a-propos')->name('a-propos');
 Route::view('/nos-objectifs', 'pages.objectifs')->name('objectifs');
+
+// ─── Don ─────────────────────────────────────────────
 Route::view('/don', 'pages.don')->name('don');
 
-// Impact
+Route::post('/don', [\App\Http\Controllers\DonationController::class, 'traiter'])
+    ->middleware('throttle:donation')
+    ->name('don.traiter');
+
+// ⚠️ URL signée : impossible de deviner la référence
+Route::get('/don/merci/{reference}', [\App\Http\Controllers\DonationController::class, 'merci'])
+    ->middleware('signed')
+    ->name('don.merci');
+
+Route::post('/don/webhook', [\App\Http\Controllers\DonationController::class, 'webhook'])
+    ->name('don.webhook')
+    ->withoutMiddleware([\App\Http\Middleware\EnsureTwoFactorVerified::class]);
+
+// Reçu PDF — protégé par une URL signée (30 jours, généré depuis l'email)
+Route::get('/don/recu/{reference}', [\App\Http\Controllers\DonationController::class, 'recu'])
+    ->middleware('signed')
+    ->name('don.recu');
+
 Route::get('/notre-impact', [ImpactController::class, 'index'])->name('impact');
 
-// Événements
 Route::get('/evenements', [EvenementController::class, 'index'])->name('evenements');
 Route::get('/evenements/{slug}', [EvenementController::class, 'show'])->name('evenements.show');
 
-// Partenaires
 Route::get('/partenaires', [PartenaireController::class, 'index'])->name('partenaires');
 
-// Ressources
 Route::get('/ressources', [RessourceController::class, 'index'])->name('ressources');
 Route::get('/ressources/{slug}', [RessourceController::class, 'show'])->name('ressources.show');
 Route::get('/ressources/{slug}/telecharger', [RessourceController::class, 'telecharger'])
     ->middleware('throttle:downloads')
     ->name('ressources.telecharger');
 
-// Galerie
 Route::get('/galerie', [GalerieController::class, 'index'])->name('galerie');
 Route::get('/galerie/{slug}', [GalerieController::class, 'show'])->name('galerie.show');
 
-// Adhésion
 Route::get('/adherer', [AdhesionController::class, 'index'])->name('adherer');
 Route::post('/adherer', [AdhesionController::class, 'store'])
     ->middleware('throttle:adhesion')
     ->name('adherer.store');
 
-// Contact
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [ContactController::class, 'store'])
     ->middleware('throttle:contact')
     ->name('contact.store');
 
-// Pages légales
 Route::view('/politique-de-confidentialite', 'legal.politique-confidentialite')->name('legal.confidentialite');
 Route::view('/mentions-legales', 'legal.mentions-legales')->name('legal.mentions');
 
 /*
 |--------------------------------------------------------------------------
-| DASHBOARD ADMIN — protégé par le middleware `admin`
+| DASHBOARD ADMIN
 |--------------------------------------------------------------------------
-| IMPORTANT : le middleware `admin` est obligatoire.
-| Sans lui, tout utilisateur inscrit (rôle « membre » par défaut)
-| accède au tableau de bord et voit les statistiques internes
-| (recettes, adhérents en attente, derniers messages…).
 */
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -110,35 +113,27 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
 
-    // Actualités
     Route::resource('actualites', \App\Http\Controllers\Admin\ActualiteController::class)
         ->except(['show']);
 
-    // Actions
     Route::resource('actions', \App\Http\Controllers\Admin\ActionController::class)
         ->except(['show']);
 
-    // Partenaires
     Route::resource('partenaires', \App\Http\Controllers\Admin\PartenaireController::class)
         ->except(['show']);
 
-    // Documents
     Route::resource('documents', \App\Http\Controllers\Admin\DocumentController::class)
         ->except(['show']);
 
-    // Témoignages
     Route::resource('temoignages', \App\Http\Controllers\Admin\TemoignageController::class)
         ->except(['show']);
 
-    // Événements
     Route::resource('evenements', \App\Http\Controllers\Admin\EvenementController::class)
         ->except(['show']);
 
-    // Ressources
     Route::resource('ressources', \App\Http\Controllers\Admin\RessourceController::class)
         ->except(['show']);
 
-    // Albums photos
     Route::resource('albums', \App\Http\Controllers\Admin\AlbumController::class);
     Route::post('albums/{album}/photos', [\App\Http\Controllers\Admin\AlbumController::class, 'ajouterPhotos'])
         ->name('albums.ajouter-photos');
@@ -147,7 +142,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::delete('photos/{photo}', [\App\Http\Controllers\Admin\AlbumController::class, 'supprimerPhoto'])
         ->name('photos.supprimer');
 
-    // Adhérents
     Route::resource('adherents', \App\Http\Controllers\Admin\AdherentController::class)
         ->except(['create', 'store']);
     Route::post('adherents/{adherent}/payer', [\App\Http\Controllers\Admin\AdherentController::class, 'payer'])
@@ -161,17 +155,14 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('adherents/{adherent}/piece-identite', [\App\Http\Controllers\Admin\AdherentController::class, 'telechargerPiece'])
         ->name('adherents.piece');
 
-    // Messages
     Route::resource('messages', \App\Http\Controllers\Admin\MessageController::class)
         ->only(['index', 'show', 'destroy']);
 
-    // Exports
     Route::get('export/adherents', [\App\Http\Controllers\Admin\ExportController::class, 'adherents'])
         ->name('export.adherents');
     Route::get('export/messages', [\App\Http\Controllers\Admin\ExportController::class, 'messages'])
         ->name('export.messages');
 
-    // Sidebar counts (alimente les badges Alpine sur le dashboard admin)
     Route::get('sidebar-counts', [\App\Http\Controllers\Admin\SidebarController::class, 'counts'])
         ->name('sidebar-counts');
 });
@@ -184,7 +175,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
 Route::prefix('adherent')->name('adherent.')->group(function () {
 
-    // Auth adhérent
     Route::get('login', [\App\Http\Controllers\Adherent\AuthController::class, 'showLogin'])
         ->name('login');
     Route::post('login', [\App\Http\Controllers\Adherent\AuthController::class, 'login'])
@@ -200,13 +190,12 @@ Route::prefix('adherent')->name('adherent.')->group(function () {
         ->middleware('throttle:adherent-password-reset')
         ->name('password.send');
 
-    // Zone protégée
-    Route::middleware('adherent')->group(function () {
+    // Zone protégée : adhérent + mot de passe à changer obligatoirement
+    Route::middleware(['adherent', \App\Http\Middleware\EnsurePasswordChanged::class])->group(function () {
 
         Route::get('dashboard', [\App\Http\Controllers\Adherent\DashboardController::class, 'index'])
             ->name('dashboard');
 
-        // Profil
         Route::get('profil', [\App\Http\Controllers\Adherent\ProfileController::class, 'edit'])
             ->name('profile.edit');
         Route::patch('profil', [\App\Http\Controllers\Adherent\ProfileController::class, 'update'])
@@ -214,24 +203,22 @@ Route::prefix('adherent')->name('adherent.')->group(function () {
         Route::patch('profil/mot-de-passe', [\App\Http\Controllers\Adherent\ProfileController::class, 'updatePassword'])
             ->name('profile.password');
 
-        // Documents
         Route::get('documents', [\App\Http\Controllers\Adherent\DocumentController::class, 'index'])
             ->name('documents');
         Route::get('documents/{document}/telecharger', [\App\Http\Controllers\Adherent\DocumentController::class, 'download'])
             ->name('documents.download');
 
-        // Actualités internes
         Route::get('actualites', [\App\Http\Controllers\Adherent\ActualiteController::class, 'index'])
             ->name('actualites');
         Route::get('actualites/{actualite}', [\App\Http\Controllers\Adherent\ActualiteController::class, 'show'])
             ->name('actualites.show');
+
+                // Cotisation
+        Route::get('cotisation', [\App\Http\Controllers\Adherent\CotisationController::class, 'index'])
+            ->name('cotisation');
+        Route::get('cotisation/recu/{paiement}', [\App\Http\Controllers\Adherent\CotisationController::class, 'recu'])
+            ->name('cotisation.recu');
     });
 });
-
-/*
-|--------------------------------------------------------------------------
-| AUTHENTIFICATION (Breeze)
-|--------------------------------------------------------------------------
-*/
 
 require __DIR__.'/auth.php';

@@ -59,7 +59,13 @@
             </div>
             <div style="margin-top: 4rem;">{{ $ressources->withQueryString()->links() }}</div>
         @else
-            <p class="para-lg" style="text-align:center;">Aucune ressource ne correspond à votre recherche.</p>
+            <x-empty-state
+                icon="file-text"
+                title="La bibliothèque se remplit"
+                text="Nos premières publications, rapports et ressources éducatives seront disponibles très prochainement."
+                :action-url="route('contact')"
+                action-label="Nous contacter"
+            />
         @endif
     </div>
 </section>

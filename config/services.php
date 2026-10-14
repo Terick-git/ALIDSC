@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    'cinetpay' => [
+        'apikey'    => env('CINETPAY_API_KEY'),
+        'site_id'   => env('CINETPAY_SITE_ID'),
+        'secret'    => env('CINETPAY_SECRET_KEY'),
+        'base_url'  => env('CINETPAY_BASE_URL', 'https://api-checkout.cinetpay.com/v2'),
+        'currency'  => env('CINETPAY_CURRENCY', 'XOF'),
+        'channels'  => env('CINETPAY_CHANNELS', 'ALL'),
+    ],
+
 ];

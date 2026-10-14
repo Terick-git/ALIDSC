@@ -1,18 +1,30 @@
-# robots.txt pour alidsc.org
+# ALIDSC — robots.txt
+# https://alidsc.org
+
 User-agent: *
 Allow: /
 
-# Bloquer les zones privées
+# Zone d'administration
 Disallow: /admin/
-Disallow: /adherent/
 Disallow: /dashboard
 Disallow: /profile
+
+# Espace adhérent
+Disallow: /adherent/
+
+# Authentification admin
 Disallow: /login
 Disallow: /register
-Disallow: /password/
-Disallow: /2fa/
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
 Disallow: /confirm-password
-Disallow: /lang/
 
-# Sitemap
+# 2FA
+Disallow: /2fa/
+
+# Pages personnelles (données privées)
+Disallow: /don/merci/
+Disallow: /don/recu/
+
 Sitemap: https://alidsc.org/sitemap.xml

@@ -9,6 +9,16 @@
 
 <div class="max-w-3xl space-y-6">
 
+    {{-- ⚠️ Bannière "changement de mot de passe requis" --}}
+    @if($adherent->must_change_password)
+        <div class="p-4 bg-amber-50 border-l-4 border-amber-500 text-amber-900 text-sm rounded">
+            <strong>Changement de mot de passe requis.</strong>
+            Vous utilisez actuellement un mot de passe temporaire.
+            Pour des raisons de sécurité, vous devez le changer avant de pouvoir
+            accéder au reste de votre espace.
+        </div>
+    @endif
+
     {{-- Informations --}}
     <div class="bg-white p-6 rounded border">
         <h2 class="font-display text-lg text-[#10263B] mb-4">Informations personnelles</h2>
@@ -52,8 +62,14 @@
     </div>
 
     {{-- Mot de passe --}}
-    <div class="bg-white p-6 rounded border">
-        <h2 class="font-display text-lg text-[#10263B] mb-4">Changer mon mot de passe</h2>
+    <div class="bg-white p-6 rounded border {{ $adherent->must_change_password ? 'border-amber-400 ring-2 ring-amber-100' : '' }}">
+        <h2 class="font-display text-lg text-[#10263B] mb-4">
+            @if($adherent->must_change_password)
+                Changer mon mot de passe (obligatoire)
+            @else
+                Changer mon mot de passe
+            @endif
+        </h2>
         <form method="POST" action="{{ route('adherent.profile.password') }}" class="space-y-4">
             @csrf @method('PATCH')
 
@@ -66,6 +82,7 @@
             <div>
                 <label class="block text-sm font-medium mb-1">Nouveau mot de passe *</label>
                 <input type="password" name="password" required class="w-full px-3 py-2 border rounded">
+                <p class="text-xs text-gray-500 mt-1">Minimum 8 caractères.</p>
                 @error('password')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
             </div>
             <div>
@@ -73,7 +90,9 @@
                 <input type="password" name="password_confirmation" required class="w-full px-3 py-2 border rounded">
             </div>
 
-            <button type="submit" class="px-5 py-2 bg-[#10263B] text-white rounded text-sm font-medium">Modifier le mot de passe</button>
+            <button type="submit" class="px-5 py-2 bg-[#10263B] text-white rounded text-sm font-medium">
+                Modifier le mot de passe
+            </button>
         </form>
     </div>
 

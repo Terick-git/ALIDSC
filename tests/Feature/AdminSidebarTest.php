@@ -86,7 +86,7 @@ class AdminSidebarTest extends TestCase
             ->assertUnauthorized();
     }
 
-    public function test_cache_evite_les_count_repetes(): void
+    public function test_cache_est_invalide_apres_une_ecriture(): void
     {
         Message::factory()->count(3)->create(['lu' => false]);
 
@@ -94,11 +94,11 @@ class AdminSidebarTest extends TestCase
         $response1 = $this->actingAs($this->admin)->getJson(route('admin.sidebar-counts'));
         $response1->assertJson(['messages_non_lus' => 3]);
 
-        // Modifie la base SANS vider le cache
+        // Nouveau message → l'observer invalide le cache
         Message::factory()->create(['lu' => false]);
 
-        // Le cache (60s) doit encore retourner 3 (pas 4)
+        // Le compteur doit immédiatement passer à 4
         $response2 = $this->actingAs($this->admin)->getJson(route('admin.sidebar-counts'));
-        $response2->assertJson(['messages_non_lus' => 3]);
+        $response2->assertJson(['messages_non_lus' => 4]);
     }
 }

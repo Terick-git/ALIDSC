@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script nonce="{{ $cspNonce ?? '' }}">document.documentElement.classList.add('js');</script>
 
     <x-seo-meta
         :title="View::getSection('title')"
@@ -21,7 +22,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 
-    @vite(['resources/css/alidsc.css', 'resources/js/alidsc.js'])
+    @vite(['resources/css/alidsc.css'])
 
     @stack('styles')
 </head>
@@ -36,6 +37,9 @@
 
     @include('components.site-footer')
 
+    <x-whatsapp-float />
+
     @stack('scripts')
+    @vite(['resources/js/alidsc.js'])
 </body>
 </html>

@@ -5,7 +5,6 @@
 
 @section('content')
 
-{{-- EN-TÊTE --}}
 <section style="padding: 12rem 0 6rem; background: var(--paper);">
     <div class="frame-tight">
         <span class="meta" style="display:block; margin-bottom: 3rem; color: var(--blue);">— Journal</span>
@@ -13,12 +12,11 @@
             Nouvelles du <em>terrain.</em>
         </h1>
         <p class="para-lg" style="max-width: 720px;">
-            Suivez nos actions au quotidien, nos avancées, nos rencontres et nos résultats. Le journal de l'ALIDSC se met à jour régulièrement.
+            Suivez nos actions au quotidien, nos avancées, nos rencontres et nos résultats.
         </p>
     </div>
 </section>
 
-{{-- LISTE --}}
 <section class="journal" style="padding: 4rem 0 10rem;">
     <div class="frame">
         @if($actualites->count() > 0)
@@ -43,9 +41,22 @@
                 {{ $actualites->links() }}
             </div>
         @else
-            <p class="para-lg" style="text-align: center; padding: 4rem 0;">
-                Les premières actualités seront publiées bientôt.
-            </p>
+            <x-empty-state
+                icon="book"
+                title="Le journal se prépare"
+                text="Nos premières actualités seront publiées très bientôt. En attendant, découvrez nos actions concrètes sur le terrain."
+                :action-url="route('actions')"
+                action-label="Voir nos actions"
+            />
+
+            <div style="margin-top: 4rem; padding-top: 4rem; border-top: 1px solid var(--line);">
+                <p class="meta" style="color: var(--blue); margin-bottom: 1.5rem;">— En attendant</p>
+                <h3 class="display-3" style="margin-bottom: 2rem;">Suivez-nous au quotidien sur WhatsApp.</h3>
+                <a href="https://wa.me/237696506940" target="_blank" rel="noopener" class="btn btn-green">
+                    <x-icon name="arrow-right" :size="16" />
+                    Discuter sur WhatsApp
+                </a>
+            </div>
         @endif
     </div>
 </section>
