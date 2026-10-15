@@ -9,6 +9,7 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/css/alidsc.css',
                 'resources/js/alidsc.js',
+                'resources/js/bulk.js',
             ],
             refresh: true,
         }),

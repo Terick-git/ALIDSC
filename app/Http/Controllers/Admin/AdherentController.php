@@ -17,6 +17,7 @@ use Illuminate\View\View;
 use App\Models\AdherentPaiement;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdherentController extends Controller
 {
@@ -254,5 +255,51 @@ class AdherentController extends Controller
             $adherent->piece_identite,
             'piece-identite-' . $adherent->id . '.' . $extension
         );
+    }
+
+        /**
+     * Action groupée : delete | export.
+     */
+    public function bulk(Request $request): RedirectResponse|StreamedResponse
+    {
+        $validated = $request->validate([
+            'action' => ['required', 'in:delete,export'],
+            'ids'    => ['required', 'string'],
+        ]);
+
+        $ids = $this->parseIds($validated['ids']);
+
+        if (empty($ids)) {
+            return back()->with('error', 'Aucun adhérent sélectionné.');
+        }
+
+        if ($validated['action'] === 'delete') {
+            $adherents = Adherent::whereIn('id', $ids)->get();
+
+            foreach ($adherents as $adherent) {
+                if ($adherent->piece_identite && Storage::disk('private')->exists($adherent->piece_identite)) {
+                    Storage::disk('private')->delete($adherent->piece_identite);
+                }
+                $adherent->delete();
+            }
+
+            return back()->with('success', $adherents->count() . ' adhérent(s) supprimé(s).');
+        }
+
+        // export → délégué à ExportController avec un filtre ids
+        return app(ExportController::class)->adherents(
+            $request->merge(['ids' => implode(',', $ids)])
+        );
+    }
+
+    /**
+     * "1,2,3" → [1, 2, 3] (ints positifs uniques).
+     */
+    protected function parseIds(string $csv): array
+    {
+        return array_values(array_unique(array_filter(
+            array_map('intval', explode(',', $csv)),
+            fn ($id) => $id > 0
+        )));
     }
 }

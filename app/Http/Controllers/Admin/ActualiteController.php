@@ -8,6 +8,7 @@ use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Illuminate\Http\RedirectResponse;
 
 class ActualiteController extends Controller
 {
@@ -123,5 +124,53 @@ class ActualiteController extends Controller
         }
 
         return $slug;
+    }
+
+        /**
+     * Action groupée : delete | publish | unpublish.
+     */
+    public function bulk(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'action' => ['required', 'in:delete,publish,unpublish'],
+            'ids'    => ['required', 'string'],
+        ]);
+
+        $ids = array_values(array_unique(array_filter(
+            array_map('intval', explode(',', $validated['ids'])),
+            fn ($id) => $id > 0
+        )));
+
+        if (empty($ids)) {
+            return back()->with('error', 'Aucun article sélectionné.');
+        }
+
+        $actualites = Actualite::whereIn('id', $ids)->get();
+        $count = $actualites->count();
+
+        switch ($validated['action']) {
+            case 'delete':
+                foreach ($actualites as $actualite) {
+                    $this->images->supprimer($actualite->image);
+                    $actualite->delete();
+                }
+                return back()->with('success', $count . ' article(s) supprimé(s).');
+
+            case 'publish':
+                foreach ($actualites as $actualite) {
+                    if (! $actualite->publie) {
+                        $actualite->update([
+                            'publie'    => true,
+                            'publie_le' => $actualite->publie_le ?? now(),
+                        ]);
+                    }
+                }
+                return back()->with('success', $count . ' article(s) publié(s).');
+
+            case 'unpublish':
+            default:
+                Actualite::whereIn('id', $ids)->update(['publie' => false]);
+                return back()->with('success', $count . ' article(s) dépublié(s).');
+        }
     }
 }

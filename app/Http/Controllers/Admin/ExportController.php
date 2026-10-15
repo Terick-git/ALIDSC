@@ -14,6 +14,18 @@ class ExportController extends Controller
     {
         $query = Adherent::query();
 
+                // Filtre par IDs (utilisé par les actions bulk)
+        if ($request->filled('ids')) {
+            $ids = array_values(array_unique(array_filter(
+                array_map('intval', explode(',', (string) $request->ids)),
+                fn ($id) => $id > 0
+            )));
+
+            if (! empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+        }
+
         // Le formulaire de filtrage envoie `statut` = statut_demande
         if ($request->filled('statut')) {
             $query->where('statut_demande', $request->statut);

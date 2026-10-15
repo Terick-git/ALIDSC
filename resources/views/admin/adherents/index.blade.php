@@ -21,43 +21,64 @@
         @endforeach
     </select>
     <button type="submit" class="px-4 py-2 bg-[#10263B] text-white rounded text-sm">Filtrer</button>
-    <a href="{{ route('admin.export.adherents', request()->query()) }}" class="px-4 py-2 border rounded text-sm">Export CSV</a>
+    <a href="{{ route('admin.export.adherents', request()->query()) }}" class="px-4 py-2 border rounded text-sm">Export CSV (filtrés)</a>
 </form>
 
-<div class="bg-white rounded border overflow-hidden">
-    <table class="w-full text-sm">
-        <thead class="bg-gray-50 border-b text-left text-xs uppercase text-gray-500">
-            <tr>
-                <th class="px-4 py-3">Nom</th>
-                <th class="px-4 py-3">Contact</th>
-                <th class="px-4 py-3">Catégorie</th>
-                <th class="px-4 py-3">Statut</th>
-                <th class="px-4 py-3 text-right">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($adherents as $a)
-                <tr class="border-b hover:bg-gray-50">
-                    <td class="px-4 py-3 font-medium">{{ $a->nom_complet }}</td>
-                    <td class="px-4 py-3 text-gray-600">
-                        <div>{{ $a->email }}</div>
-                        <div class="text-xs">{{ $a->telephone }}</div>
-                    </td>
-                    <td class="px-4 py-3">{{ $a->categorie_label }}</td>
-                    <td class="px-4 py-3">
-                        <span class="badge @if($a->statut_demande==='active') badge-green @elseif($a->statut_demande==='en_attente') badge-amber @elseif($a->statut_demande==='refuse') badge-red @else badge @endif">
-                            {{ $a->statut_demande_label }}
-                        </span>
-                    </td>
-                    <td class="px-4 py-3 text-right">
-                        <a href="{{ route('admin.adherents.show', $a) }}" class="text-blue-600 hover:underline">Voir</a>
-                    </td>
+<form method="POST" action="{{ route('admin.adherents.bulk') }}" data-bulk-form>
+    @csrf
+    <input type="hidden" name="action" data-bulk-action-input>
+    <input type="hidden" name="ids"    data-bulk-ids-input>
+
+    <div class="bg-white rounded border overflow-hidden">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 border-b text-left text-xs uppercase text-gray-500">
+                <tr>
+                    <th class="px-4 py-3 w-10">
+                        <input type="checkbox" data-bulk-select-all
+                               class="rounded border-gray-300 text-[#10263B] focus:ring-[#10263B]">
+                    </th>
+                    <th class="px-4 py-3">Nom</th>
+                    <th class="px-4 py-3">Contact</th>
+                    <th class="px-4 py-3">Catégorie</th>
+                    <th class="px-4 py-3">Statut</th>
+                    <th class="px-4 py-3 text-right">Actions</th>
                 </tr>
-            @empty
-                <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">Aucun adhérent.</td></tr>
-            @endforelse
-        </tbody>
-    </table>
-</div>
+            </thead>
+            <tbody>
+                @forelse($adherents as $a)
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="px-4 py-3">
+                            <input type="checkbox" value="{{ $a->id }}" data-bulk-checkbox
+                                   class="rounded border-gray-300 text-[#10263B] focus:ring-[#10263B]">
+                        </td>
+                        <td class="px-4 py-3 font-medium">{{ $a->nom_complet }}</td>
+                        <td class="px-4 py-3 text-gray-600">
+                            <div>{{ $a->email }}</div>
+                            <div class="text-xs">{{ $a->telephone }}</div>
+                        </td>
+                        <td class="px-4 py-3">{{ $a->categorie_label }}</td>
+                        <td class="px-4 py-3">
+                            <span class="badge @if($a->statut_demande==='active') badge-green @elseif($a->statut_demande==='en_attente') badge-amber @elseif($a->statut_demande==='refuse') badge-red @else badge @endif">
+                                {{ $a->statut_demande_label }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-right">
+                            <a href="{{ route('admin.adherents.show', $a) }}" class="text-blue-600 hover:underline">Voir</a>
+                        </td>
+                    </tr>
+                @empty
+                    <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">Aucun adhérent.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    <x-bulk-toolbar :actions="[
+        ['value' => 'export', 'label' => 'Exporter CSV', 'variant' => 'primary'],
+        ['value' => 'delete', 'label' => 'Supprimer',    'variant' => 'danger',
+         'confirm' => 'Supprimer définitivement ces adhérents ? Les pièces d\'identité seront aussi supprimées.'],
+    ]" />
+</form>
+
 <div class="mt-4">{{ $adherents->withQueryString()->links() }}</div>
 @endsection

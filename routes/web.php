@@ -165,6 +165,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     Route::get('sidebar-counts', [\App\Http\Controllers\Admin\SidebarController::class, 'counts'])
         ->name('sidebar-counts');
+    
+        // ─── Actions bulk ─────────────────────────────────────
+    Route::post('messages/bulk',   [\App\Http\Controllers\Admin\MessageController::class,   'bulk'])->name('messages.bulk');
+    Route::post('adherents/bulk',  [\App\Http\Controllers\Admin\AdherentController::class,  'bulk'])->name('adherents.bulk');
+    Route::post('actualites/bulk', [\App\Http\Controllers\Admin\ActualiteController::class, 'bulk'])->name('actualites.bulk');
 });
 
 /*

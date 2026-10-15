@@ -6,50 +6,83 @@
 @endsection
 
 @section('content')
-<div class="flex justify-between items-center mb-6">
-    <p class="text-sm text-gray-500">{{ $actualites->total() }} article(s)</p>
-    <a href="{{ route('admin.actualites.create') }}" class="px-4 py-2 bg-[#10263B] text-white rounded text-sm font-medium">+ Nouvelle actualité</a>
-</div>
+    <div class="flex justify-between items-center mb-6">
+        <p class="text-sm text-gray-500">{{ $actualites->total() }} article(s)</p>
+        <a href="{{ route('admin.actualites.create') }}"
+            class="px-4 py-2 bg-[#10263B] text-white rounded text-sm font-medium">+ Nouvelle actualité</a>
+    </div>
 
-<div class="bg-white rounded border border-gray-200 overflow-hidden">
-    <table class="w-full text-sm">
-        <thead class="bg-gray-50 border-b border-gray-200">
-            <tr class="text-left text-xs uppercase text-gray-500">
-                <th class="px-4 py-3">Titre</th>
-                <th class="px-4 py-3">Auteur</th>
-                <th class="px-4 py-3">Statut</th>
-                <th class="px-4 py-3">Publié le</th>
-                <th class="px-4 py-3 text-right">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($actualites as $a)
-                <tr class="border-b border-gray-100 hover:bg-gray-50">
-                    <td class="px-4 py-3">
-                        <div class="font-medium">{{ $a->titre }}</div>
-                        <div class="text-xs text-gray-400">/{{ $a->slug }}</div>
-                    </td>
-                    <td class="px-4 py-3 text-gray-600">{{ $a->auteur?->name ?? '—' }}</td>
-                    <td class="px-4 py-3">
-                        @if($a->interne)<span class="badge badge-navy">Interne</span>
-                        @elseif($a->publie)<span class="badge badge-green">Publié</span>
-                        @else<span class="badge">Brouillon</span>@endif
-                    </td>
-                    <td class="px-4 py-3 text-gray-500">{{ $a->publie_le?->format('d/m/Y') ?? '—' }}</td>
-                    <td class="px-4 py-3 text-right space-x-2">
-                        <a href="{{ route('admin.actualites.edit', $a) }}" class="text-blue-600 hover:underline">Modifier</a>
-                        <form method="POST" action="{{ route('admin.actualites.destroy', $a) }}" class="inline" data-confirm="Supprimer ?">
-                            @csrf @method('DELETE')
-                            <button type="submit" class="text-red-600 hover:underline">Supprimer</button>
-                        </form>
-                    </td>
-                </tr>
-            @empty
-                <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">Aucun article.</td></tr>
-            @endforelse
-        </tbody>
-    </table>
-</div>
+    <form method="POST" action="{{ route('admin.actualites.bulk') }}" data-bulk-form>
+        @csrf
+        <input type="hidden" name="action" data-bulk-action-input>
+        <input type="hidden" name="ids" data-bulk-ids-input>
 
-<div class="mt-4">{{ $actualites->links() }}</div>
+        <div class="bg-white rounded border border-gray-200 overflow-hidden">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr class="text-left text-xs uppercase text-gray-500">
+                        <th class="px-4 py-3 w-10">
+                            <input type="checkbox" data-bulk-select-all
+                                class="rounded border-gray-300 text-[#10263B] focus:ring-[#10263B]">
+                        </th>
+                        <th class="px-4 py-3">Titre</th>
+                        <th class="px-4 py-3">Auteur</th>
+                        <th class="px-4 py-3">Statut</th>
+                        <th class="px-4 py-3">Publié le</th>
+                        <th class="px-4 py-3 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($actualites as $a)
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="px-4 py-3">
+                                <input type="checkbox" value="{{ $a->id }}" data-bulk-checkbox
+                                    class="rounded border-gray-300 text-[#10263B] focus:ring-[#10263B]">
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="font-medium">{{ $a->titre }}</div>
+                                <div class="text-xs text-gray-400">/{{ $a->slug }}</div>
+                            </td>
+                            <td class="px-4 py-3 text-gray-600">{{ $a->auteur?->name ?? '—' }}</td>
+                            <td class="px-4 py-3">
+                                @if ($a->interne)
+                                    <span class="badge badge-navy">Interne</span>
+                                @elseif($a->publie)
+                                    <span class="badge badge-green">Publié</span>
+                                @else<span class="badge">Brouillon</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-gray-500">{{ $a->publie_le?->format('d/m/Y') ?? '—' }}</td>
+                            <td class="px-4 py-3 text-right space-x-2">
+                                <a href="{{ route('admin.actualites.edit', $a) }}"
+                                    class="text-blue-600 hover:underline">Modifier</a>
+                                <form method="POST" action="{{ route('admin.actualites.destroy', $a) }}" class="inline"
+                                    onsubmit="return confirm('Supprimer cet article ?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="text-red-600 hover:underline">Supprimer</button>
+                                </form>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="px-4 py-8 text-center text-gray-400">Aucun article.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <x-bulk-toolbar :actions="[
+            ['value' => 'publish', 'label' => 'Publier', 'variant' => 'primary'],
+            ['value' => 'unpublish', 'label' => 'Dépublier'],
+            [
+                'value' => 'delete',
+                'label' => 'Supprimer',
+                'variant' => 'danger',
+                'confirm' => 'Supprimer ces articles ? Les images associées seront aussi supprimées.',
+            ],
+        ]" />
+    </form>
+
+    <div class="mt-4">{{ $actualites->links() }}</div>
 @endsection
