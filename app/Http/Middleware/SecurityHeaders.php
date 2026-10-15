@@ -52,27 +52,47 @@ class SecurityHeaders
         $isDev = app()->isLocal();
 
         // ─────────────────────────────────────────────────────────
-        // En développement : Vite HMR + eval inline.
-        // En production : nonce + 'unsafe-inline' TEMPORAIRE.
+        // Vite HMR peut être servi via 3 formes de "localhost" :
+        //   - http://localhost:5173
+        //   - http://127.0.0.1:5173
+        //   - http://[::1]:5173      (IPv6 — utilisé par défaut par
+        //                             certains navigateurs/Nodes)
         //
-        // ⚠️  TODO (dans les 2 semaines) : retirer 'unsafe-inline' dès que
-        //     tous les onclick= et <script> inline auront été convertis
-        //     (voir les fichiers admin/adherents/profile/2fa).
-        //     Objectif final : 'self' 'nonce-xxx' uniquement.
+        // On autorise les trois + les WebSockets correspondants,
+        // sinon le HMR est bloqué par le CSP.
         // ─────────────────────────────────────────────────────────
+        $viteHosts = implode(' ', [
+            'http://localhost:5173',
+            'http://127.0.0.1:5173',
+            'http://[::1]:5173',
+        ]);
+
+        $viteWs = implode(' ', [
+            'ws://localhost:5173',
+            'ws://127.0.0.1:5173',
+            'ws://[::1]:5173',
+        ]);
+
         $scriptSrc = $isDev
-            ? "'self' 'unsafe-inline' 'unsafe-eval' http://localhost:5173 http://127.0.0.1:5173 ws://localhost:5173 ws://127.0.0.1:5173"
+            ? "'self' 'unsafe-inline' 'unsafe-eval' {$viteHosts} {$viteWs}"
             : "'self' 'nonce-{$this->nonce}' 'unsafe-inline'";
 
+        $styleSrc = $isDev
+            ? "'self' 'unsafe-inline' https://fonts.googleapis.com {$viteHosts}"
+            : "'self' 'unsafe-inline' https://fonts.googleapis.com";
+
         $connectSrc = $isDev
-            ? "'self' ws://localhost:5173 ws://127.0.0.1:5173 http://localhost:5173 http://127.0.0.1:5173"
+            ? "'self' {$viteHosts} {$viteWs}"
             : "'self'";
 
         $directives = [
             "default-src 'self'",
             "script-src {$scriptSrc}",
             "script-src-elem {$scriptSrc}",
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+            // ⚠️ style-src-elem explicite : sinon le navigateur
+            //    retombe sur style-src qui n'autorise pas Vite.
+            "style-src {$styleSrc}",
+            "style-src-elem {$styleSrc}",
             "font-src 'self' https://fonts.gstatic.com data:",
             "img-src 'self' data: blob: https:",
             "connect-src {$connectSrc}",
@@ -84,11 +104,10 @@ class SecurityHeaders
             "form-action 'self'",
             "worker-src 'self' blob:",
             "manifest-src 'self'",
-            "upgrade-insecure-requests",
         ];
 
-        if ($isDev) {
-            $directives = array_filter($directives, fn ($d) => $d !== 'upgrade-insecure-requests');
+        if (! $isDev) {
+            $directives[] = 'upgrade-insecure-requests';
         }
 
         return implode('; ', $directives);
