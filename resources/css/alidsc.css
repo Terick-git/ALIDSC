@@ -1631,3 +1631,204 @@ p {
     max-width: 100%;
     object-fit: contain;
 }
+
+/* ─────────────────────────────────────────────────────────
+   35 · ALIDSC EDITOR (TipTap)
+   ───────────────────────────────────────────────────────── */
+.alidsc-editor {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: white;
+    overflow: hidden;
+}
+
+.alidsc-editor__toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    padding: 0.5rem;
+    background: var(--paper-tint);
+    border-bottom: 1px solid var(--line);
+}
+
+.alidsc-editor__toolbar button {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--marine);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 150ms, border-color 150ms, color 150ms;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.alidsc-editor__toolbar button:hover {
+    background: white;
+    border-color: var(--line);
+}
+
+.alidsc-editor__toolbar button.is-active {
+    background: var(--marine);
+    color: white;
+    border-color: var(--marine);
+}
+
+.alidsc-editor__sep {
+    width: 1px;
+    height: 20px;
+    background: var(--line);
+    margin: 0 0.25rem;
+}
+
+.alidsc-editor__content {
+    min-height: 240px;
+    padding: 1rem 1.25rem;
+    font-family: var(--body);
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--text);
+    outline: none;
+}
+
+.alidsc-editor__content:focus {
+    background: #FDFEFE;
+}
+
+/* Placeholder */
+.alidsc-editor__content p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: var(--text-soft);
+    pointer-events: none;
+    height: 0;
+    font-style: italic;
+}
+
+/* Styles du contenu produit */
+.alidsc-editor__content h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--marine);
+    margin: 1.5rem 0 0.75rem;
+    letter-spacing: -0.02em;
+}
+
+.alidsc-editor__content h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--marine);
+    margin: 1.25rem 0 0.5rem;
+}
+
+.alidsc-editor__content p {
+    margin: 0.75rem 0;
+}
+
+.alidsc-editor__content ul,
+.alidsc-editor__content ol {
+    padding-left: 1.5rem;
+    margin: 0.75rem 0;
+}
+
+.alidsc-editor__content ul li { list-style: disc; }
+.alidsc-editor__content ol li { list-style: decimal; }
+
+.alidsc-editor__content blockquote {
+    border-left: 3px solid var(--blue);
+    padding-left: 1rem;
+    margin: 1rem 0;
+    font-style: italic;
+    color: var(--text-muted);
+}
+
+.alidsc-editor__content a {
+    color: var(--blue);
+    text-decoration: underline;
+    text-decoration-color: rgba(11, 111, 184, 0.3);
+    text-underline-offset: 3px;
+}
+
+.alidsc-editor__content a:hover {
+    text-decoration-color: var(--blue);
+}
+
+.alidsc-editor__content hr {
+    border: 0;
+    border-top: 1px solid var(--line);
+    margin: 1.5rem 0;
+}
+
+.alidsc-editor__content code {
+    font-family: var(--mono);
+    font-size: 0.9em;
+    background: var(--paper-tint);
+    padding: 0.15rem 0.35rem;
+    border-radius: 3px;
+}
+
+/* ─────────────────────────────────────────────────────────
+   36 · PROSE CONTENT — rendu du HTML TipTap côté public
+   ───────────────────────────────────────────────────────── */
+.prose-content h2 {
+    font-family: var(--display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--marine);
+    margin: 2rem 0 0.75rem;
+    letter-spacing: -0.02em;
+}
+
+.prose-content h3 {
+    font-family: var(--display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--marine);
+    margin: 1.5rem 0 0.5rem;
+}
+
+.prose-content p { margin: 0.75rem 0; }
+
+.prose-content ul,
+.prose-content ol {
+    padding-left: 1.5rem;
+    margin: 0.75rem 0;
+}
+
+.prose-content ul li { list-style: disc; }
+.prose-content ol li { list-style: decimal; }
+
+.prose-content blockquote {
+    border-left: 3px solid var(--blue);
+    padding-left: 1rem;
+    margin: 1rem 0;
+    font-style: italic;
+    color: var(--text-muted);
+}
+
+.prose-content a {
+    color: var(--blue);
+    text-decoration: underline;
+    text-decoration-color: rgba(11, 111, 184, 0.3);
+    text-underline-offset: 3px;
+}
+
+.prose-content hr {
+    border: 0;
+    border-top: 1px solid var(--line);
+    margin: 2rem 0;
+}
+
+.prose-content code {
+    font-family: var(--mono);
+    font-size: 0.9em;
+    background: var(--paper-tint);
+    padding: 0.15rem 0.35rem;
+    border-radius: 3px;
+}

@@ -51,4 +51,15 @@
         <a href="{{ route('admin.actions.index') }}" class="px-5 py-2 border rounded text-sm">Annuler</a>
     </div>
 </form>
+
+@push('scripts')
+<script nonce="{{ $cspNonce ?? '' }}">
+    document.addEventListener('DOMContentLoaded', () => {
+        new AlidscEditor('#contenu', {
+            placeholder: 'Décrivez cette action concrète…',
+        });
+    });
+</script>
+@endpush
+
 @endsection

@@ -20,7 +20,7 @@
 
     <div>
         <label class="block text-sm font-medium mb-1">Contenu *</label>
-        <textarea name="contenu" rows="12" required class="w-full px-3 py-2 border rounded font-mono text-sm">{{ old('contenu') }}</textarea>
+        <textarea name="contenu" id="contenu" required>{{ old('contenu') }}</textarea>
         @error('contenu')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
     </div>
 
@@ -39,4 +39,14 @@
         <a href="{{ route('admin.actualites.index') }}" class="px-5 py-2 border rounded text-sm">Annuler</a>
     </div>
 </form>
+
+@push('scripts')
+<script nonce="{{ $cspNonce ?? '' }}">
+    document.addEventListener('DOMContentLoaded', () => {
+        new AlidscEditor('#contenu', {
+            placeholder: 'Rédigez le contenu de l\'article…',
+        });
+    });
+</script>
+@endpush
 @endsection
